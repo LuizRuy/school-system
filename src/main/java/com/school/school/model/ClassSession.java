@@ -12,16 +12,14 @@ import java.util.Set;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class Task {
+public class ClassSession {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String name;
-
     private LocalDateTime createdAt;
 
-    @OneToMany(mappedBy = "task")
-    private Set<Submission> submissions;
+    @OneToMany(mappedBy = "classSession")
+    private Set<Attendance> attendances;
 }

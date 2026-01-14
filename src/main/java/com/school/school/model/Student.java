@@ -40,4 +40,10 @@ public class Student {
             inverseJoinColumns = @JoinColumn(name = "clasroom_id")
     )
     private Set<Classroom> classrooms;
+
+    @OneToMany(mappedBy = "student")
+    private Set<Submission> submissions;
+
+    @OneToMany(mappedBy = "student")
+    private Set<Attendance> attendances;
 }

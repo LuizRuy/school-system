@@ -28,6 +28,6 @@ public class Classroom {
     @JoinColumn(name = "user_id")
     private User user;
 
-    @ManyToMany(mappedBy = "clasrooms")
+    @ManyToMany(mappedBy = "classrooms")
     private Set<Student> students;
 }

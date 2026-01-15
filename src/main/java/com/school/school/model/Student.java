@@ -35,9 +35,9 @@ public class Student {
 
     @ManyToMany
     @JoinTable(
-            name= "student_clasroom",
+            name= "student_classroom",
             joinColumns = @JoinColumn(name = "student_id"),
-            inverseJoinColumns = @JoinColumn(name = "clasroom_id")
+            inverseJoinColumns = @JoinColumn(name = "classroom_id")
     )
     private Set<Classroom> classrooms;
 

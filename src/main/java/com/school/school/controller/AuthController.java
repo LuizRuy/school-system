@@ -1,7 +1,7 @@
 package com.school.school.controller;
 
-import com.school.school.model.dto.AuthRequest;
-import com.school.school.model.dto.AuthResponse;
+import com.school.school.model.dto.auth.AuthRequest;
+import com.school.school.model.dto.auth.AuthResponse;
 import com.school.school.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

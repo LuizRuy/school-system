@@ -1,4 +1,4 @@
-package com.school.school.model.dto;
+package com.school.school.model.dto.user;
 
 import lombok.Data;
 

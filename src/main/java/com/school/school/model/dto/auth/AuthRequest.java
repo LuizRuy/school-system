@@ -1,4 +1,4 @@
-package com.school.school.model.dto;
+package com.school.school.model.dto.auth;
 
 import lombok.Data;
 

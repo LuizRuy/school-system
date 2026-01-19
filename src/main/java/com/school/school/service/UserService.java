@@ -2,20 +2,17 @@ package com.school.school.service;
 
 import com.school.school.infra.security.SecurityUtil;
 import com.school.school.model.User;
-import com.school.school.model.dto.UserRequest;
-import com.school.school.model.dto.UserResponse;
-import com.school.school.model.dto.UserUpdate;
-import com.school.school.model.enums.Role;
+import com.school.school.model.dto.user.ChangePasswordRequest;
+import com.school.school.model.dto.user.UserRequest;
+import com.school.school.model.dto.user.UserResponse;
+import com.school.school.model.dto.user.UserUpdate;
 import com.school.school.repository.UserRepository;
 import lombok.AllArgsConstructor;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
-import java.util.Optional;
 
 @Service
 @AllArgsConstructor
@@ -38,12 +35,11 @@ public class UserService {
         user.setFirstName(userRequest.getFirstName());
         user.setLastName(userRequest.getLastName());
         user.setCreatedAt(LocalDateTime.now());
-        user.setRole(Role.USER);
+        user.setRole(userRequest.getRole());
 
         userRepository.save(user);
 
     }
-
 
     public User findByEmail(String email) {
         return userRepository.findByEmail(email).
@@ -61,9 +57,9 @@ public class UserService {
 
         User user = findById(userId);
 
-       user.setFirstName(dto.getFirstName());
-       user.setLastName(dto.getLastName());
-       user.setUpdatedAt(LocalDateTime.now());
+        user.setFirstName(dto.getFirstName());
+        user.setLastName(dto.getLastName());
+        user.setUpdatedAt(LocalDateTime.now());
 
         userRepository.save(user);
 
@@ -76,8 +72,25 @@ public class UserService {
    }
 
    public void delete(Long id){
-
         User existingUser  = findById(id);
         userRepository.delete(existingUser);
+   }
+
+   public void changePassword(ChangePasswordRequest request){
+        Long userId = SecurityUtil.getUserId();
+
+        User user = findById(userId);
+
+        if(!passwordEncoder.matches(request.getOldPassword(), user.getPassword())){
+            throw new RuntimeException("Old password is incorrect");
+        }
+
+        if(!Objects.equals(request.getNewPassword(), request.getConfirmNewPassword())){
+            throw new RuntimeException("New password and confirm new password do not match");
+        }
+
+        String hashedNewPassword = passwordEncoder.encode(request.getNewPassword());
+        user.setPassword(hashedNewPassword);
+        user.setUpdatedAt(LocalDateTime.now());
    }
 }

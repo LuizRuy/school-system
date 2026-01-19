@@ -1,9 +1,10 @@
 package com.school.school.controller;
 
 
-import com.school.school.model.dto.UserRequest;
-import com.school.school.model.dto.UserResponse;
-import com.school.school.model.dto.UserUpdate;
+import com.school.school.model.dto.user.ChangePasswordRequest;
+import com.school.school.model.dto.user.UserRequest;
+import com.school.school.model.dto.user.UserResponse;
+import com.school.school.model.dto.user.UserUpdate;
 import com.school.school.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -26,5 +27,17 @@ public class UserController {
     @PatchMapping("/update")
     public ResponseEntity<UserResponse> updateUser(@RequestBody UserUpdate userUpdate) {
         return ResponseEntity.status(HttpStatus.OK).body(userService.update(userUpdate));
+    }
+
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
+        userService.delete(id);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+    }
+
+    @PatchMapping("/change-password")
+    public ResponseEntity<Void> changePassword(@RequestBody ChangePasswordRequest changePasswordRequest) {
+        userService.changePassword(changePasswordRequest);
+        return ResponseEntity.status(HttpStatus.OK).build();
     }
 }

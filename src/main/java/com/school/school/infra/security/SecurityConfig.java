@@ -49,6 +49,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/auth/**").permitAll()
                         .requestMatchers("/api/v1/users/register").permitAll()
                         .requestMatchers("/api/v1/users/update").hasRole("USER")
+                        .requestMatchers("/api/v1/students/**").hasRole("USER")
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(tokenAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

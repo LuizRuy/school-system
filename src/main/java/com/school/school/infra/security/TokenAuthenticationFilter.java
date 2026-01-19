@@ -1,5 +1,7 @@
 package com.school.school.infra.security;
 
+import com.school.school.model.User;
+import com.school.school.repository.UserRepository;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
@@ -21,6 +23,7 @@ import java.util.List;
 public class TokenAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;
+    private final UserRepository userRepository;
 
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
@@ -41,18 +44,21 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
             try {
                 Claims claims = jwtUtil.validateToken(token);
 
-                String username = claims.getSubject();
                 Long userId = claims.get("userId", Long.class);
                 String role = claims.get("role", String.class);
 
+                User user = userRepository.findById(userId)
+                        .orElseThrow(() -> new JwtException("Usuário não encontrado"));
+
+                UserAuthenticated userAuth = new UserAuthenticated(user);
+
+
                 UsernamePasswordAuthenticationToken auth =
                         new UsernamePasswordAuthenticationToken(
-                                username,
+                                userAuth,
                                 null,
                                 List.of(new SimpleGrantedAuthority("ROLE_" + role))
                         );
-
-                auth.setDetails(userId);
 
                 SecurityContextHolder.getContext().setAuthentication(auth);
 

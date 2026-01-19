@@ -1,6 +1,7 @@
 package com.school.school.service;
 
 import com.school.school.infra.security.SecurityUtil;
+import com.school.school.infra.security.UserAuthenticated;
 import com.school.school.model.User;
 import com.school.school.model.dto.user.ChangePasswordRequest;
 import com.school.school.model.dto.user.UserRequest;
@@ -51,10 +52,8 @@ public class UserService {
                 orElseThrow(() -> new RuntimeException("User with id " + id + " not found"));
     }
 
-   public UserResponse update(UserUpdate dto) {
-
-        Long userId = SecurityUtil.getUserId();
-
+   public UserResponse update(UserUpdate dto, UserAuthenticated userAuthenticated) {
+        Long userId = userAuthenticated.getUser().getId();
         User user = findById(userId);
 
         user.setFirstName(dto.getFirstName());
@@ -76,8 +75,8 @@ public class UserService {
         userRepository.delete(existingUser);
    }
 
-   public void changePassword(ChangePasswordRequest request){
-        Long userId = SecurityUtil.getUserId();
+   public void changePassword(ChangePasswordRequest request, UserAuthenticated userAuthenticated) {
+        Long userId = userAuthenticated.getUser().getId();
 
         User user = findById(userId);
 
@@ -92,5 +91,7 @@ public class UserService {
         String hashedNewPassword = passwordEncoder.encode(request.getNewPassword());
         user.setPassword(hashedNewPassword);
         user.setUpdatedAt(LocalDateTime.now());
+
+        userRepository.save(user);
    }
 }

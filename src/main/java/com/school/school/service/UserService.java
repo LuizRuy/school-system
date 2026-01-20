@@ -1,6 +1,8 @@
 package com.school.school.service;
 
-import com.school.school.infra.security.SecurityUtil;
+import com.school.school.infra.exception.BusinessException;
+import com.school.school.infra.exception.EntityAlreadyExistsException;
+import com.school.school.infra.exception.EntityNotFoundException;
 import com.school.school.infra.security.UserAuthenticated;
 import com.school.school.model.User;
 import com.school.school.model.dto.user.ChangePasswordRequest;
@@ -25,7 +27,7 @@ public class UserService {
     public void save(UserRequest userRequest) {
 
         if (userRepository.existsByEmail(userRequest.getEmail())) {
-            throw new RuntimeException("User with email already exists");
+            throw new EntityAlreadyExistsException("User with email already exists");
         }
 
         String hashedPassword = passwordEncoder.encode(userRequest.getPassword());
@@ -44,12 +46,12 @@ public class UserService {
 
     public User findByEmail(String email) {
         return userRepository.findByEmail(email).
-                orElseThrow(() -> new RuntimeException("User with email " + email + " not found"));
+                orElseThrow(() -> new EntityNotFoundException("User with email " + email + " not found"));
     }
 
     public User findById(Long id) {
         return  userRepository.findById(id).
-                orElseThrow(() -> new RuntimeException("User with id " + id + " not found"));
+                orElseThrow(() -> new EntityNotFoundException("User with id " + id + " not found"));
     }
 
    public UserResponse update(UserUpdate dto, UserAuthenticated userAuthenticated) {
@@ -81,11 +83,11 @@ public class UserService {
         User user = findById(userId);
 
         if(!passwordEncoder.matches(request.getOldPassword(), user.getPassword())){
-            throw new RuntimeException("Old password is incorrect");
+            throw new BusinessException("Old password is incorrect");
         }
 
         if(!Objects.equals(request.getNewPassword(), request.getConfirmNewPassword())){
-            throw new RuntimeException("New password and confirm new password do not match");
+            throw new BusinessException("New password and confirm new password do not match");
         }
 
         String hashedNewPassword = passwordEncoder.encode(request.getNewPassword());

@@ -1,5 +1,6 @@
 package com.school.school.service;
 
+import com.school.school.infra.exception.EntityNotFoundException;
 import com.school.school.infra.security.UserAuthenticated;
 import com.school.school.model.Student;
 import com.school.school.model.User;
@@ -9,8 +10,6 @@ import com.school.school.model.dto.student.UpdateStudent;
 import com.school.school.repository.StudentRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -37,8 +36,14 @@ public class StudentService {
     }
 
     private Student findStudent(Long id, User authenticatedUser) {
-        return studentRepository.findByIdAndUser(id, authenticatedUser).
-                orElseThrow(() -> new AccessDeniedException("Student not found or access denied"));
+        Student student = studentRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Student with id " + id + " not found"));
+
+        if(!student.getUser().getId().equals(authenticatedUser.getId())) {
+            throw new AccessDeniedException("You do not have permission to access this student");
+        }
+
+        return student;
     }
 
     public UpdateStudent updateStudent(Long studentId, UpdateStudent updateStudent, UserAuthenticated authenticatedUser) {

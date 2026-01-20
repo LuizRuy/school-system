@@ -1,5 +1,6 @@
 package com.school.school.service;
 
+import com.school.school.infra.exception.EntityNotFoundException;
 import com.school.school.infra.security.JwtUtil;
 import com.school.school.model.User;
 import com.school.school.model.dto.auth.AuthRequest;
@@ -46,6 +47,6 @@ public class AuthService {
 
     public User findByEmail(String email){
         return userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new EntityNotFoundException("User not found with email: " + email));
     }
 }

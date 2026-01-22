@@ -35,11 +35,11 @@ public class StudentService {
         studentRepository.save(student);
     }
 
-    private Student findStudent(Long id, User authenticatedUser) {
+    public Student findStudent(Long id, UserAuthenticated authenticatedUser) {
         Student student = studentRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Student with id " + id + " not found"));
 
-        if(!student.getUser().getId().equals(authenticatedUser.getId())) {
+        if(!student.getUser().getId().equals(authenticatedUser.getUser().getId())) {
             throw new AccessDeniedException("You do not have permission to access this student");
         }
 
@@ -47,9 +47,7 @@ public class StudentService {
     }
 
     public UpdateStudent updateStudent(Long studentId, UpdateStudent updateStudent, UserAuthenticated authenticatedUser) {
-
-        User user = getAuthenticatedUser(authenticatedUser);
-        Student student = findStudent(studentId, user);
+        Student student = findStudent(studentId, authenticatedUser);
 
         student.setName(updateStudent.getName());
         student.setDateOfBirth(updateStudent.getDateOfBirth());
@@ -62,14 +60,12 @@ public class StudentService {
     }
 
     public void deleteStudent(Long studentId, UserAuthenticated authenticatedUser) {
-        User user = getAuthenticatedUser(authenticatedUser);
-        Student student = findStudent(studentId, user);
+        Student student = findStudent(studentId, authenticatedUser);
         studentRepository.delete(student);
     }
 
     public StudentResponse findByStudentId(Long studentId, UserAuthenticated authenticatedUser) {
-        User user = getAuthenticatedUser(authenticatedUser);
-        Student student = findStudent(studentId, user);
+        Student student = findStudent(studentId, authenticatedUser);
         return new StudentResponse(
                 student.getId(),
                 student.getName(),

@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.Set;
 
 @Getter
@@ -28,5 +29,5 @@ public class Classroom {
     private User user;
 
     @ManyToMany(mappedBy = "classrooms")
-    private Set<Student> students;
+    private Set<Student> students = new HashSet<>();
 }

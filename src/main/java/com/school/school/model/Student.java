@@ -5,6 +5,7 @@ import lombok.*;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.Set;
 
 @Getter
@@ -38,11 +39,16 @@ public class Student {
             joinColumns = @JoinColumn(name = "student_id"),
             inverseJoinColumns = @JoinColumn(name = "classroom_id")
     )
-    private Set<Classroom> classrooms;
+    private Set<Classroom> classrooms = new HashSet<>();
 
     @OneToMany(mappedBy = "student")
-    private Set<Submission> submissions;
+    private Set<Submission> submissions = new HashSet<>();
 
     @OneToMany(mappedBy = "student")
-    private Set<Attendance> attendances;
+    private Set<Attendance> attendances = new HashSet<>();
+
+    public void addClassroom(Classroom classroom) {
+        classrooms.add(classroom);
+        classroom.getStudents().add(this);
+    }
 }

@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.Set;
 
 @Getter
@@ -22,5 +23,5 @@ public class Task {
     private LocalDateTime createdAt;
 
     @OneToMany(mappedBy = "task")
-    private Set<Submission> submissions;
+    private Set<Submission> submissions = new HashSet<>();
 }

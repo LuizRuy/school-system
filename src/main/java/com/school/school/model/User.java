@@ -5,7 +5,9 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -35,8 +37,8 @@ public class User {
     private Role role;
 
     @OneToMany(mappedBy = "user")
-    private List<Student> students;
+    private Set<Student> students = new HashSet<>();
 
     @OneToMany(mappedBy = "user")
-    private List<Classroom> classes;
+    private Set<Classroom> classes = new HashSet<>();
 }

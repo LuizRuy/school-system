@@ -41,4 +41,7 @@ public class User {
 
     @OneToMany(mappedBy = "user")
     private Set<Classroom> classes = new HashSet<>();
+
+    @OneToMany(mappedBy = "user")
+    private Set<Task> tasks = new HashSet<>();
 }

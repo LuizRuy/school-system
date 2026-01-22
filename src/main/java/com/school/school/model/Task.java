@@ -24,4 +24,8 @@ public class Task {
 
     @OneToMany(mappedBy = "task")
     private Set<Submission> submissions = new HashSet<>();
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private User user;
 }

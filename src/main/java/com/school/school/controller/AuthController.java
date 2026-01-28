@@ -4,6 +4,7 @@ import com.school.school.model.dto.auth.AuthRequest;
 import com.school.school.model.dto.auth.AuthResponse;
 import com.school.school.service.AuthService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,7 +17,8 @@ public class AuthController {
 
     @PostMapping("/login")
     ResponseEntity<AuthResponse> login(@RequestBody AuthRequest authRequest) {
-        return ResponseEntity.ok(authService.login(authRequest));
+        authService.login(authRequest);
+        return ResponseEntity.status(HttpStatus.OK).build();
     }
 
 }

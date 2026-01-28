@@ -91,4 +91,8 @@ public class StudentService {
         return authenticatedUser.getUser();
     }
 
+    public Student getReferenceById(Long studentId) {
+        return studentRepository.getReferenceById(studentId);
+    }
+
 }

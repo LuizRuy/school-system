@@ -22,4 +22,8 @@ public class ClassSession {
 
     @OneToMany(mappedBy = "classSession")
     private Set<Attendance> attendances = new HashSet<>();
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name= "user_id")
+    private  User user;
 }

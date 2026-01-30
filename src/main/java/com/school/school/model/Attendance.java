@@ -25,4 +25,6 @@ public class Attendance {
     @JoinColumn(name = "classSession_id")
     private ClassSession classSession;
 
+    private boolean present;
+
 }

@@ -74,7 +74,7 @@ public class ClassroomController {
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 
-    @DeleteMapping("{classroomId}/student/{studentId}")
+    @DeleteMapping("{classroomId}/students/{studentId}")
     public ResponseEntity<Void> removeClassroomFromStudent(@PathVariable Long classroomId,
                                                            @PathVariable Long studentId,
                                                            @AuthenticationPrincipal UserAuthenticated authenticatedUser) {

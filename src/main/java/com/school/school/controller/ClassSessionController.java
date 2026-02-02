@@ -25,7 +25,8 @@ public class ClassSessionController {
     }
 
     @GetMapping("/{classSessionId}")
-    public ResponseEntity<ClassSessionResponse> getClassSessionById(@PathVariable Long classSessionId, @AuthenticationPrincipal UserAuthenticated userAuthenticated) {
+    public ResponseEntity<ClassSessionResponse> getClassSessionById(@PathVariable Long classSessionId,
+                                                                    @AuthenticationPrincipal UserAuthenticated userAuthenticated) {
         ClassSessionResponse classSessionResponse = classSessionService.getById(classSessionId, userAuthenticated);
         return ResponseEntity.status(HttpStatus.OK).body(classSessionResponse);
     }

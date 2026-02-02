@@ -18,6 +18,7 @@ public class ClassSession {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    //todo: trocar para LocalDate
     private LocalDateTime createdAt;
 
     @OneToMany(mappedBy = "classSession")

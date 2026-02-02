@@ -24,21 +24,21 @@ public class ClassSessionController {
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<ClassSessionResponse> getClassSessionById(@PathVariable Long id, @AuthenticationPrincipal UserAuthenticated userAuthenticated) {
-        ClassSessionResponse classSessionResponse = classSessionService.getById(id, userAuthenticated);
+    @GetMapping("/{classSessionId}")
+    public ResponseEntity<ClassSessionResponse> getClassSessionById(@PathVariable Long classSessionId, @AuthenticationPrincipal UserAuthenticated userAuthenticated) {
+        ClassSessionResponse classSessionResponse = classSessionService.getById(classSessionId, userAuthenticated);
         return ResponseEntity.status(HttpStatus.OK).body(classSessionResponse);
     }
 
-    @GetMapping("/user")
+    @GetMapping("/user-classSessions")
     public ResponseEntity<List<ClassSessionResponse>> getClassSessionsByUserId(@AuthenticationPrincipal UserAuthenticated userAuthenticated) {
         List<ClassSessionResponse> classSessions = classSessionService.getUserClassSessions(userAuthenticated);
         return ResponseEntity.status(HttpStatus.OK).body(classSessions);
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteClassSessionById(@PathVariable Long id, @AuthenticationPrincipal UserAuthenticated userAuthenticated) {
-        classSessionService.deleteClassSession(id, userAuthenticated);
+    @DeleteMapping("/{classSessionId}")
+    public ResponseEntity<Void> deleteClassSessionById(@PathVariable Long classSessionId, @AuthenticationPrincipal UserAuthenticated userAuthenticated) {
+        classSessionService.deleteClassSession(classSessionId, userAuthenticated);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 }

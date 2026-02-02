@@ -16,6 +16,9 @@ public class AttendanceController {
 
     private final AttendanceService attendanceService;
 
+    //todo: testar endpoints
+
+
     @PostMapping()
     public ResponseEntity<Void> createAttendanceList(@RequestBody AttendanceRequest attendanceRequest,
                                                      @AuthenticationPrincipal UserAuthenticated userAuthenticated){

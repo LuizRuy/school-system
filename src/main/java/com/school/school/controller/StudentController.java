@@ -28,7 +28,7 @@ public class StudentController {
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
-    @PatchMapping("/update/{studentId}")
+    @PatchMapping("/{studentId}")
     ResponseEntity<UpdateStudent> updateStudent(@PathVariable Long studentId,
                                                 @RequestBody UpdateStudent updateStudent,
                                                 @AuthenticationPrincipal UserAuthenticated authenticatedUser) {
@@ -36,7 +36,7 @@ public class StudentController {
         return ResponseEntity.status(HttpStatus.OK).body(updatedStudent);
     }
 
-    @DeleteMapping("/delete/{studentId}")
+    @DeleteMapping("/{studentId}")
     ResponseEntity<Void> deleteStudent(@PathVariable Long studentId,
                                        @AuthenticationPrincipal UserAuthenticated authenticatedUser) {
         studentService.deleteStudent(studentId, authenticatedUser);

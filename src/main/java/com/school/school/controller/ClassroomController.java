@@ -15,7 +15,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("api/v1/classroom")
+@RequestMapping("api/v1/classrooms")
 public class ClassroomController {
 
     private final ClassroomService classroomService;
@@ -54,6 +54,9 @@ public class ClassroomController {
         ClassroomResponse updatedClassroom = classroomService.updateClassroom(classroomId, classroomRequest, authenticatedUser);
         return ResponseEntity.ok(updatedClassroom);
     }
+
+    //todo: testar endpoints
+
 
     @PostMapping("{classroomId}/students/{studentId}")
     public ResponseEntity<Void> assignNewStudent(@PathVariable Long classroomId,

@@ -18,6 +18,8 @@ public class SubmissionController {
 
     private final SubmissionService submissionService;
 
+    //todo: testar endpoints
+
     @PostMapping("/{taskId}")
     ResponseEntity<Void> addSubmissions(@PathVariable Long taskId,
                                         @RequestBody SubmissionsRequest submissionsRequest,

@@ -22,7 +22,9 @@ public class Task {
 
     private LocalDateTime createdAt;
 
-    @OneToMany(mappedBy = "task")
+    @OneToMany(mappedBy = "task",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true)
     private Set<Submission> submissions = new HashSet<>();
 
     @ManyToOne(fetch = FetchType.LAZY)

@@ -18,8 +18,6 @@ public class SubmissionController {
 
     private final SubmissionService submissionService;
 
-    //todo: testar endpoints
-
     @PostMapping("/{taskId}")
     ResponseEntity<Void> addSubmissions(@PathVariable Long taskId,
                                         @RequestBody SubmissionsRequest submissionsRequest,
@@ -40,5 +38,12 @@ public class SubmissionController {
                                                       @AuthenticationPrincipal UserAuthenticated userAuthenticated) {
         SubmissionResponse submissionResponse = submissionService.getSubmissions(taskId, userAuthenticated);
         return ResponseEntity.status(HttpStatus.OK).body(submissionResponse);
+    }
+
+    @PatchMapping
+    ResponseEntity<Void> updateSubmission(@RequestBody SubmissionRequest submissionRequest,
+                                          @AuthenticationPrincipal UserAuthenticated userAuthenticated) {
+        submissionService.updateSubmission(submissionRequest, userAuthenticated);
+        return ResponseEntity.status(HttpStatus.OK).build();
     }
 }

@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
@@ -13,6 +14,7 @@ import java.util.List;
 public class SubmissionResponse {
     private Long taskId;
     private String taskTitle;
+    private LocalDateTime createdAt;
     private List<StudentSubmission> submissions;
 
 }

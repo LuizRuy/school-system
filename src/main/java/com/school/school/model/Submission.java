@@ -15,11 +15,13 @@ public class Submission {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "student_id")
+    @JoinColumn(name = "student_id",
+                nullable = false)
     private Student student;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "task_id")
+    @JoinColumn(name = "task_id",
+                nullable = false)
     private Task task;
 
     private Boolean submitted;

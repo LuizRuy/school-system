@@ -27,17 +27,18 @@ public class ClassroomController {
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
+    //todo : retornar os estudantes da turma
     @GetMapping("/{classroomId}")
     public ResponseEntity<ClassroomResponse> getClassroom(@PathVariable Long classroomId,
                                                           @AuthenticationPrincipal UserAuthenticated authenticatedUser) {
-        ClassroomResponse c = classroomService.findClassroomById(classroomId, authenticatedUser);
-        return ResponseEntity.ok(c);
+        ClassroomResponse classroomResponse = classroomService.findClassroomById(classroomId, authenticatedUser);
+        return ResponseEntity.status(HttpStatus.OK).body(classroomResponse);
     }
 
     @GetMapping("/user-classrooms")
     public ResponseEntity<List<ClassroomResponse>> getAllClassrooms(@AuthenticationPrincipal UserAuthenticated authenticatedUser) {
         List<ClassroomResponse> classrooms = classroomService.findAllClassrooms(authenticatedUser);
-        return ResponseEntity.ok(classrooms);
+        return ResponseEntity.status(HttpStatus.OK).body(classrooms);
     }
 
     @DeleteMapping("/{classroomId}")
@@ -55,10 +56,7 @@ public class ClassroomController {
         return ResponseEntity.ok(updatedClassroom);
     }
 
-    //todo: testar endpoints
-
-
-    @PostMapping("{classroomId}/students/{studentId}")
+    @PostMapping("/{classroomId}/students/{studentId}")
     public ResponseEntity<Void> assignNewStudent(@PathVariable Long classroomId,
                                                  @PathVariable Long studentId,
                                                  @AuthenticationPrincipal UserAuthenticated authenticatedUser) {
@@ -66,7 +64,7 @@ public class ClassroomController {
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 
-    @PostMapping("{classroomId}/students")
+    @PostMapping("/{classroomId}")
     public ResponseEntity<Void> assignNewStudents(@PathVariable Long classroomId,
                                                   @RequestBody AddStudentsRequest request,
                                                   @AuthenticationPrincipal UserAuthenticated authenticatedUser){
@@ -74,7 +72,7 @@ public class ClassroomController {
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 
-    @DeleteMapping("{classroomId}/students/{studentId}")
+    @DeleteMapping("/{classroomId}/students/{studentId}")
     public ResponseEntity<Void> removeClassroomFromStudent(@PathVariable Long classroomId,
                                                            @PathVariable Long studentId,
                                                            @AuthenticationPrincipal UserAuthenticated authenticatedUser) {

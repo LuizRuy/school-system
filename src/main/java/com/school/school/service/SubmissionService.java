@@ -1,5 +1,6 @@
 package com.school.school.service;
 
+import com.school.school.infra.exception.EntityNotFoundException;
 import com.school.school.infra.security.UserAuthenticated;
 import com.school.school.model.Student;
 import com.school.school.model.Submission;
@@ -64,6 +65,7 @@ public class SubmissionService {
         return new SubmissionResponse(
                 task.getId(),
                 task.getName(),
+                task.getCreatedAt(),
                 submissions.stream().map(submission -> {
                     StudentSubmission studentSubmission = new StudentSubmission();
                     studentSubmission.setStudentId(submission.getStudent().getId());
@@ -72,6 +74,19 @@ public class SubmissionService {
                     return studentSubmission;
                 }).toList()
         );
+    }
+
+
+    public void updateSubmission(SubmissionRequest submissionRequest, UserAuthenticated userAuthenticated) {
+
+        Submission submission = submissionRepository.findByTaskIdAndStudentId(submissionRequest.getTaskId(), submissionRequest.getStudentId())
+                .orElseThrow(() -> new EntityNotFoundException("Submission not found for task ID " + submissionRequest.getTaskId() +
+                        " and student ID " + submissionRequest.getStudentId()));
+
+        submission.setSubmitted(submissionRequest.getSubmitted());
+
+        submissionRepository.save(submission);
+
     }
 
 }

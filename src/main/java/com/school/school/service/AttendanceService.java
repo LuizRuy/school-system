@@ -1,10 +1,12 @@
 package com.school.school.service;
 
+import com.school.school.infra.exception.EntityNotFoundException;
 import com.school.school.infra.security.UserAuthenticated;
 import com.school.school.model.Attendance;
 import com.school.school.model.ClassSession;
 import com.school.school.model.Student;
 import com.school.school.model.dto.attendance.AttendanceRequest;
+import com.school.school.model.dto.attendance.UpdateAttendanceRequest;
 import com.school.school.repository.AttendanceRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -51,6 +53,15 @@ public class AttendanceService {
 
         attendanceRepository.saveAll(attendances);
 
+    }
+
+    public void updateAttendanceList(UpdateAttendanceRequest updateAttendanceRequest, UserAuthenticated userAuthenticated) {
+        Attendance attendance = attendanceRepository.findByStudentIdAndClassSessionId(updateAttendanceRequest.getStudentId(), updateAttendanceRequest.getClassSessionId())
+                .orElseThrow(() -> new EntityNotFoundException("Attendance record not found for student ID " + updateAttendanceRequest.getStudentId() +
+                        " and class session ID " + updateAttendanceRequest.getClassSessionId()));
+
+        attendance.setPresent(updateAttendanceRequest.isPresence());
+        attendanceRepository.save(attendance);
     }
 
 }

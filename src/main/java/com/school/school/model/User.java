@@ -1,6 +1,7 @@
 package com.school.school.model;
 
 import com.school.school.model.enums.Role;
+import com.school.school.model.enums.Status;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -32,6 +33,9 @@ public class User {
     private LocalDateTime createdAt;
 
     private LocalDateTime updatedAt;
+
+    @Enumerated(EnumType.STRING)
+    private Status status;
 
     @Enumerated(EnumType.STRING)
     private Role role;

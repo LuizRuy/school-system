@@ -1,10 +1,12 @@
 package com.school.school.service;
 
+import com.school.school.infra.exception.BusinessException;
 import com.school.school.infra.exception.EntityNotFoundException;
 import com.school.school.infra.security.JwtUtil;
 import com.school.school.model.User;
 import com.school.school.model.dto.auth.AuthRequest;
 import com.school.school.model.dto.auth.AuthResponse;
+import com.school.school.model.enums.Status;
 import com.school.school.repository.UserRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -33,6 +35,10 @@ public class AuthService {
             UserDetails userDetails = (UserDetails) authentication.getPrincipal();
 
             User user = findByEmail(userDetails.getUsername());
+
+            if(user.getStatus() == Status.DISABLED) {
+                throw new BusinessException("User have been disabled");
+            }
 
             String jwt = jwtUtil.generateToken(user);
 

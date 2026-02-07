@@ -9,6 +9,7 @@ import com.school.school.model.dto.user.ChangePasswordRequest;
 import com.school.school.model.dto.user.UserRequest;
 import com.school.school.model.dto.user.UserResponse;
 import com.school.school.model.dto.user.UserUpdate;
+import com.school.school.model.enums.Status;
 import com.school.school.repository.UserRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -39,6 +40,7 @@ public class UserService {
         user.setLastName(userRequest.getLastName());
         user.setCreatedAt(LocalDateTime.now());
         user.setRole(userRequest.getRole());
+        user.setStatus(Status.ENABLED);
 
         userRepository.save(user);
 
@@ -72,9 +74,11 @@ public class UserService {
         );
    }
 
-   public void delete(Long id){
+   public void disable(Long id){
         User existingUser  = findById(id);
-        userRepository.delete(existingUser);
+        existingUser.setStatus(Status.DISABLED);
+
+        userRepository.save(existingUser);
    }
 
    public void changePassword(ChangePasswordRequest request, UserAuthenticated userAuthenticated) {

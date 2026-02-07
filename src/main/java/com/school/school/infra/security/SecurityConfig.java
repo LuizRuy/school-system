@@ -46,10 +46,20 @@ public class SecurityConfig {
                         .accessDeniedHandler(accessDeniedHandler)
                 )
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/v1/auth/**").permitAll()
+                        .requestMatchers("/api/v1/auth/login").permitAll()
                         .requestMatchers("/api/v1/users/register").permitAll()
-                        .requestMatchers("/api/v1/users/update").hasRole("USER")
-                        .requestMatchers("/api/v1/students/**").hasRole("USER")
+
+                        .requestMatchers("/api/v1/users/update").hasAnyRole("ADMIN", "USER")
+                        .requestMatchers("/api/v1/users/disable/**").hasRole("ADMIN")
+                        .requestMatchers("/api/v1/users/change-password").hasAnyRole("ADMIN", "USER")
+
+                        .requestMatchers("/api/v1/students", "/api/v1/students/**").hasAnyRole("ADMIN", "USER")
+                        .requestMatchers("/api/v1/attendances", "/api/v1/attendances/**").hasAnyRole("ADMIN", "USER")
+                        .requestMatchers("/api/v1/classrooms", "/api/v1/classrooms/**").hasAnyRole("ADMIN", "USER")
+                        .requestMatchers("/api/v1/class-sessions", "/api/v1/class-sessions/**").hasAnyRole("ADMIN", "USER")
+                        .requestMatchers("/api/v1/submissions", "/api/v1/submissions/**").hasAnyRole("ADMIN", "USER")
+                        .requestMatchers("/api/v1/tasks", "/api/v1/tasks/**").hasAnyRole("ADMIN", "USER")
+
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(tokenAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

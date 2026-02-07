@@ -8,6 +8,8 @@ import com.school.school.model.User;
 import com.school.school.model.dto.classroom.AddStudentsRequest;
 import com.school.school.model.dto.classroom.ClassroomRequest;
 import com.school.school.model.dto.classroom.ClassroomResponse;
+import com.school.school.model.dto.classroom.ClassroomStudentsResponse;
+import com.school.school.model.dto.student.StudentClassroomResponse;
 import com.school.school.repository.ClassroomRepository;
 import com.school.school.repository.StudentRepository;
 import lombok.RequiredArgsConstructor;
@@ -49,12 +51,17 @@ public class ClassroomService {
         return c;
     }
 
-    public ClassroomResponse findClassroomById(Long classroomId, UserAuthenticated userAuthenticated) {
+    public ClassroomStudentsResponse findClassroomById(Long classroomId, UserAuthenticated userAuthenticated) {
         Classroom classroom = findById(classroomId, userAuthenticated);
 
-        return new ClassroomResponse(
+        List<Student> students = studentRepository.findByClassrooms(classroom);
+
+        return new ClassroomStudentsResponse(
                 classroom.getId(),
-                classroom.getName()
+                classroom.getName(),
+                students.stream()
+                        .map(s -> new StudentClassroomResponse(s.getId(), s.getName()))
+                        .toList()
         );
     }
 

@@ -4,6 +4,7 @@ import com.school.school.infra.security.UserAuthenticated;
 import com.school.school.model.dto.classroom.AddStudentsRequest;
 import com.school.school.model.dto.classroom.ClassroomRequest;
 import com.school.school.model.dto.classroom.ClassroomResponse;
+import com.school.school.model.dto.classroom.ClassroomStudentsResponse;
 import com.school.school.service.ClassroomService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -29,10 +30,10 @@ public class ClassroomController {
 
     //todo : retornar os estudantes da turma
     @GetMapping("/{classroomId}")
-    public ResponseEntity<ClassroomResponse> getClassroom(@PathVariable Long classroomId,
-                                                          @AuthenticationPrincipal UserAuthenticated authenticatedUser) {
-        ClassroomResponse classroomResponse = classroomService.findClassroomById(classroomId, authenticatedUser);
-        return ResponseEntity.status(HttpStatus.OK).body(classroomResponse);
+    public ResponseEntity<ClassroomStudentsResponse> getClassroom(@PathVariable Long classroomId,
+                                                                  @AuthenticationPrincipal UserAuthenticated authenticatedUser) {
+        ClassroomStudentsResponse classroomStudentsResponse = classroomService.findClassroomById(classroomId, authenticatedUser);
+        return ResponseEntity.status(HttpStatus.OK).body(classroomStudentsResponse);
     }
 
     @GetMapping("/user-classrooms")

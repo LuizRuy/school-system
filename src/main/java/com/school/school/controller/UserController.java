@@ -33,9 +33,9 @@ public class UserController {
     }
 
     // todo: trocar para uma rota de desativar usuario
-    @DeleteMapping("/delete/{userId}")
+    @PatchMapping("/disable/{userId}")
     public ResponseEntity<Void> deleteUser(@PathVariable Long userId) {
-        userService.delete(userId);
+        userService.disable(userId);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 

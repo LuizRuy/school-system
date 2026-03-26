@@ -9,6 +9,7 @@ import com.school.school.model.dto.user.ChangePasswordRequest;
 import com.school.school.model.dto.user.UserRequest;
 import com.school.school.model.dto.user.UserResponse;
 import com.school.school.model.dto.user.UserUpdate;
+import com.school.school.model.enums.Role;
 import com.school.school.model.enums.Status;
 import com.school.school.repository.UserRepository;
 import lombok.AllArgsConstructor;
@@ -39,7 +40,7 @@ public class UserService {
         user.setFirstName(userRequest.getFirstName());
         user.setLastName(userRequest.getLastName());
         user.setCreatedAt(LocalDateTime.now());
-        user.setRole(userRequest.getRole());
+        user.setRole(Role.USER);
         user.setStatus(Status.ENABLED);
 
         userRepository.save(user);

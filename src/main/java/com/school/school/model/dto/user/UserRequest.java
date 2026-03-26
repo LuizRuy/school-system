@@ -1,8 +1,6 @@
 package com.school.school.model.dto.user;
 
-import com.school.school.model.enums.Role;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotEmpty;
 import lombok.Data;
 
 @Data
@@ -19,7 +17,4 @@ public class UserRequest {
 
     @NotBlank(message = "Senha é obrigatorio")
     private String password;
-
-    @NotEmpty(message = "Role é obrigatorio")
-    private Role role;
 }

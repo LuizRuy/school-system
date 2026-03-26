@@ -48,6 +48,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/v1/auth/login").permitAll()
                         .requestMatchers("/api/v1/users/register").permitAll()
+                        .requestMatchers("/api/v1/auth/refresh").permitAll()
 
                         .requestMatchers("/api/v1/users/update").hasAnyRole("ADMIN", "USER")
                         .requestMatchers("/api/v1/users/disable/**").hasRole("ADMIN")
@@ -59,6 +60,12 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/class-sessions", "/api/v1/class-sessions/**").hasAnyRole("ADMIN", "USER")
                         .requestMatchers("/api/v1/submissions", "/api/v1/submissions/**").hasAnyRole("ADMIN", "USER")
                         .requestMatchers("/api/v1/tasks", "/api/v1/tasks/**").hasAnyRole("ADMIN", "USER")
+
+                        .requestMatchers(
+                                "/swagger-ui/**",
+                                "/v3/api-docs/**",
+                                "/swagger-ui.html"
+                        ).permitAll()
 
                         .anyRequest().authenticated()
                 )

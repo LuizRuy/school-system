@@ -3,12 +3,15 @@ package com.school.school.infra.security;
 import com.school.school.model.User;
 import com.school.school.repository.UserRepository;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.CredentialsExpiredException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -24,17 +27,11 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;
     private final UserRepository userRepository;
+    private final CustomAuthenticationEntryPoint authenticationEntryPoint;
 
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain chain) throws ServletException, IOException {
-
-        String path = request.getServletPath();
-
-        if (path.equals("/login") || path.equals("/register")) {
-            chain.doFilter(request, response);
-            return;
-        }
 
         String authHeader = request.getHeader("Authorization");
 
@@ -52,7 +49,6 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
 
                 UserAuthenticated userAuth = new UserAuthenticated(user);
 
-
                 UsernamePasswordAuthenticationToken auth =
                         new UsernamePasswordAuthenticationToken(
                                 userAuth,
@@ -62,8 +58,16 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
 
                 SecurityContextHolder.getContext().setAuthentication(auth);
 
+            } catch (ExpiredJwtException e) {
+                SecurityContextHolder.clearContext();
+                authenticationEntryPoint.commence(request, response,
+                        new CredentialsExpiredException("Token expirado"));
+                return;
+
             } catch (JwtException | IllegalArgumentException e) {
-                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                SecurityContextHolder.clearContext();
+                authenticationEntryPoint.commence(request, response,
+                        new BadCredentialsException("Token inválido"));
                 return;
             }
         }

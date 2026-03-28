@@ -5,6 +5,7 @@ import com.school.school.model.dto.student.CreateStudentRequest;
 import com.school.school.model.dto.student.StudentResponse;
 import com.school.school.model.dto.student.UpdateStudent;
 import com.school.school.service.StudentService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,7 +22,7 @@ public class StudentController {
     private final StudentService studentService;
 
     @PostMapping
-    ResponseEntity<Void> createStudent(@RequestBody CreateStudentRequest request,
+    ResponseEntity<Void> createStudent(@RequestBody @Valid CreateStudentRequest request,
                                        @AuthenticationPrincipal UserAuthenticated authenticatedUser) {
         studentService.createStudent(request, authenticatedUser);
         return ResponseEntity.status(HttpStatus.CREATED).build();
@@ -29,7 +30,7 @@ public class StudentController {
 
     @PatchMapping("/{studentId}")
     ResponseEntity<UpdateStudent> updateStudent(@PathVariable Long studentId,
-                                                @RequestBody UpdateStudent updateStudent,
+                                                @RequestBody @Valid UpdateStudent updateStudent,
                                                 @AuthenticationPrincipal UserAuthenticated authenticatedUser) {
         UpdateStudent updatedStudent = studentService.updateStudent(studentId, updateStudent, authenticatedUser);
         return ResponseEntity.status(HttpStatus.OK).body(updatedStudent);

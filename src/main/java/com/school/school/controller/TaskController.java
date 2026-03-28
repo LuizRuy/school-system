@@ -4,6 +4,7 @@ import com.school.school.infra.security.UserAuthenticated;
 import com.school.school.model.dto.task.CreateTaskRequest;
 import com.school.school.model.dto.task.TaskResponse;
 import com.school.school.service.TaskService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,7 +21,7 @@ public class TaskController {
     private final TaskService taskService;
 
     @PostMapping
-    ResponseEntity<Void> createTask(@RequestBody CreateTaskRequest createTaskRequest,
+    ResponseEntity<Void> createTask(@RequestBody @Valid CreateTaskRequest createTaskRequest,
                                     @AuthenticationPrincipal UserAuthenticated authenticatedUser) {
         taskService.createTask(createTaskRequest, authenticatedUser);
         return ResponseEntity.status(HttpStatus.CREATED).build();

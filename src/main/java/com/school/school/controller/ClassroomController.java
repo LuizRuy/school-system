@@ -6,6 +6,7 @@ import com.school.school.model.dto.classroom.ClassroomRequest;
 import com.school.school.model.dto.classroom.ClassroomResponse;
 import com.school.school.model.dto.classroom.ClassroomStudentsResponse;
 import com.school.school.service.ClassroomService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,7 +23,7 @@ public class ClassroomController {
     private final ClassroomService classroomService;
 
     @PostMapping
-    public ResponseEntity<Void> createClassroom(@RequestBody ClassroomRequest createClassroomRequest,
+    public ResponseEntity<Void> createClassroom(@RequestBody @Valid ClassroomRequest createClassroomRequest,
                                                 @AuthenticationPrincipal UserAuthenticated authenticatedUser) {
         classroomService.createClassroom(createClassroomRequest, authenticatedUser);
         return ResponseEntity.status(HttpStatus.CREATED).build();
@@ -51,7 +52,7 @@ public class ClassroomController {
 
     @PatchMapping("/{classroomId}")
     public ResponseEntity<ClassroomResponse> updateClassroom(@PathVariable Long classroomId,
-                                                                @RequestBody ClassroomRequest classroomRequest,
+                                                                @RequestBody @Valid ClassroomRequest classroomRequest,
                                                                 @AuthenticationPrincipal UserAuthenticated authenticatedUser) {
         ClassroomResponse updatedClassroom = classroomService.updateClassroom(classroomId, classroomRequest, authenticatedUser);
         return ResponseEntity.ok(updatedClassroom);
@@ -67,7 +68,7 @@ public class ClassroomController {
 
     @PostMapping("/{classroomId}")
     public ResponseEntity<Void> assignNewStudents(@PathVariable Long classroomId,
-                                                  @RequestBody AddStudentsRequest request,
+                                                  @RequestBody @Valid AddStudentsRequest request,
                                                   @AuthenticationPrincipal UserAuthenticated authenticatedUser){
         classroomService.assignClassroomToStudents(classroomId, request,authenticatedUser);
         return ResponseEntity.status(HttpStatus.OK).build();

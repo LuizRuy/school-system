@@ -7,6 +7,7 @@ import com.school.school.model.dto.user.UserRequest;
 import com.school.school.model.dto.user.UserResponse;
 import com.school.school.model.dto.user.UserUpdate;
 import com.school.school.service.UserService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,13 +22,13 @@ public class UserController {
     private final UserService userService;
 
     @PostMapping("/register")
-    public ResponseEntity<Void> createUser(@RequestBody UserRequest userRequest) {
+    public ResponseEntity<Void> createUser(@RequestBody @Valid UserRequest userRequest) {
         userService.save(userRequest);
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
     @PatchMapping("/update")
-    public ResponseEntity<UserResponse> updateUser(@RequestBody UserUpdate userUpdate,
+    public ResponseEntity<UserResponse> updateUser(@RequestBody @Valid UserUpdate userUpdate,
                                                    @AuthenticationPrincipal UserAuthenticated authenticatedUser) {
         return ResponseEntity.status(HttpStatus.OK).body(userService.update(userUpdate, authenticatedUser));
     }
@@ -40,7 +41,7 @@ public class UserController {
     }
 
     @PatchMapping("/change-password")
-    public ResponseEntity<Void> changePassword(@RequestBody ChangePasswordRequest changePasswordRequest,
+    public ResponseEntity<Void> changePassword(@RequestBody @Valid ChangePasswordRequest changePasswordRequest,
                                                @AuthenticationPrincipal UserAuthenticated authenticatedUser) {
         userService.changePassword(changePasswordRequest, authenticatedUser);
         return ResponseEntity.status(HttpStatus.OK).build();

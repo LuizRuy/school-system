@@ -4,6 +4,7 @@ import com.school.school.infra.security.UserAuthenticated;
 import com.school.school.model.dto.attendance.AttendanceRequest;
 import com.school.school.model.dto.attendance.UpdateAttendanceRequest;
 import com.school.school.service.AttendanceService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,7 +19,7 @@ public class AttendanceController {
     private final AttendanceService attendanceService;
 
     @PostMapping()
-    public ResponseEntity<Void> createAttendanceList(@RequestBody AttendanceRequest attendanceRequest,
+    public ResponseEntity<Void> createAttendanceList(@RequestBody @Valid AttendanceRequest attendanceRequest,
                                                      @AuthenticationPrincipal UserAuthenticated userAuthenticated){
         attendanceService.markAttendanceList(attendanceRequest,userAuthenticated);
         return ResponseEntity.status(HttpStatus.CREATED).build();
@@ -34,7 +35,7 @@ public class AttendanceController {
     }
 
     @PatchMapping
-    public ResponseEntity<Void> updateAttendance(@RequestBody UpdateAttendanceRequest UpdateAttendanceRequest,
+    public ResponseEntity<Void> updateAttendance(@RequestBody @Valid UpdateAttendanceRequest UpdateAttendanceRequest,
                                                  @AuthenticationPrincipal UserAuthenticated userAuthenticated){
         attendanceService.updateAttendanceList(UpdateAttendanceRequest,userAuthenticated);
         return ResponseEntity.status(HttpStatus.OK).build();

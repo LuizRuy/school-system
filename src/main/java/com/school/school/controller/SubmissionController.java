@@ -5,6 +5,7 @@ import com.school.school.model.dto.submission.SubmissionRequest;
 import com.school.school.model.dto.submission.SubmissionResponse;
 import com.school.school.model.dto.submission.SubmissionsRequest;
 import com.school.school.service.SubmissionService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,14 +21,14 @@ public class SubmissionController {
 
     @PostMapping("/{taskId}")
     ResponseEntity<Void> addSubmissions(@PathVariable Long taskId,
-                                        @RequestBody SubmissionsRequest submissionsRequest,
+                                        @RequestBody @Valid SubmissionsRequest submissionsRequest,
                                         @AuthenticationPrincipal UserAuthenticated userAuthenticated) {
         submissionService.addSubmissions(taskId, submissionsRequest, userAuthenticated);
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
     @PostMapping
-    ResponseEntity<Void> addSubmission(@RequestBody SubmissionRequest submissionRequest,
+    ResponseEntity<Void> addSubmission(@RequestBody @Valid SubmissionRequest submissionRequest,
                                        @AuthenticationPrincipal UserAuthenticated userAuthenticated) {
         submissionService.addSubmission(submissionRequest, userAuthenticated);
         return ResponseEntity.status(HttpStatus.CREATED).build();
@@ -41,7 +42,7 @@ public class SubmissionController {
     }
 
     @PatchMapping
-    ResponseEntity<Void> updateSubmission(@RequestBody SubmissionRequest submissionRequest,
+    ResponseEntity<Void> updateSubmission(@RequestBody @Valid SubmissionRequest submissionRequest,
                                           @AuthenticationPrincipal UserAuthenticated userAuthenticated) {
         submissionService.updateSubmission(submissionRequest, userAuthenticated);
         return ResponseEntity.status(HttpStatus.OK).build();

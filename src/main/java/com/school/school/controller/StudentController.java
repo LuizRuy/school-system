@@ -1,7 +1,6 @@
 package com.school.school.controller;
 
 import com.school.school.infra.security.UserAuthenticated;
-import com.school.school.model.User;
 import com.school.school.model.dto.student.CreateStudentRequest;
 import com.school.school.model.dto.student.StudentResponse;
 import com.school.school.model.dto.student.UpdateStudent;

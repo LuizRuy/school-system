@@ -3,9 +3,6 @@ package com.school.school.model;
 import jakarta.persistence.*;
 import lombok.*;
 
-
-import java.time.LocalDateTime;
-
 @Getter
 @Setter
 @NoArgsConstructor

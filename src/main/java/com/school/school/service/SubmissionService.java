@@ -12,6 +12,7 @@ import com.school.school.model.dto.submission.SubmissionsRequest;
 import com.school.school.repository.SubmissionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -36,6 +37,7 @@ public class SubmissionService {
         submissionRepository.save(submission);
     }
 
+    @Transactional
     public void addSubmissions(Long taskId, SubmissionsRequest submissionsRequest, UserAuthenticated userAuthenticated) {
 
         Task task = taskService.getById(taskId, userAuthenticated);
@@ -46,7 +48,7 @@ public class SubmissionService {
                     Submission s = new Submission();
                     s.setTask(task);
                     s.setStudent(
-                            studentService.getReferenceById(entry.getKey())
+                            studentService.findStudent(entry.getKey(), userAuthenticated)
                     );
                     s.setSubmitted(entry.getValue());
                     return s;
@@ -78,6 +80,9 @@ public class SubmissionService {
 
 
     public void updateSubmission(SubmissionRequest submissionRequest, UserAuthenticated userAuthenticated) {
+
+        taskService.getById(submissionRequest.getTaskId(), userAuthenticated);
+        studentService.findStudent(submissionRequest.getStudentId(), userAuthenticated);
 
         Submission submission = submissionRepository.findByTaskIdAndStudentId(submissionRequest.getTaskId(), submissionRequest.getStudentId())
                 .orElseThrow(() -> new EntityNotFoundException("Submission not found for task ID " + submissionRequest.getTaskId() +

@@ -10,6 +10,7 @@ import com.school.school.model.dto.attendance.UpdateAttendanceRequest;
 import com.school.school.repository.AttendanceRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -34,6 +35,7 @@ public class AttendanceService {
         attendanceRepository.save(attendance);
     }
 
+    @Transactional
     public void markAttendanceList(AttendanceRequest attendanceRequest, UserAuthenticated userAuthenticated) {
 
         ClassSession classSession = classSessionService.getClassSessionById(attendanceRequest.getClassSessionId(), userAuthenticated);
@@ -44,7 +46,7 @@ public class AttendanceService {
                     Attendance attendance = new Attendance();
                     attendance.setClassSession(classSession);
                     attendance.setStudent(
-                            studentService.getReferenceById(entry.getKey())
+                            studentService.findStudent(entry.getKey(), userAuthenticated)
                     );
                     attendance.setPresent(entry.getValue());
                     return attendance;
@@ -56,11 +58,14 @@ public class AttendanceService {
     }
 
     public void updateAttendanceList(UpdateAttendanceRequest updateAttendanceRequest, UserAuthenticated userAuthenticated) {
+        classSessionService.getClassSessionById(updateAttendanceRequest.getClassSessionId(), userAuthenticated);
+        studentService.findStudent(updateAttendanceRequest.getStudentId(), userAuthenticated);
+
         Attendance attendance = attendanceRepository.findByStudentIdAndClassSessionId(updateAttendanceRequest.getStudentId(), updateAttendanceRequest.getClassSessionId())
                 .orElseThrow(() -> new EntityNotFoundException("Attendance record not found for student ID " + updateAttendanceRequest.getStudentId() +
                         " and class session ID " + updateAttendanceRequest.getClassSessionId()));
 
-        attendance.setPresent(updateAttendanceRequest.isPresence());
+        attendance.setPresent(updateAttendanceRequest.getPresence());
         attendanceRepository.save(attendance);
     }
 

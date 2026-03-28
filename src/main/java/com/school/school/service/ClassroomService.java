@@ -15,6 +15,8 @@ import com.school.school.repository.StudentRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
@@ -103,6 +105,7 @@ public class ClassroomService {
         studentRepository.save(student);
     }
 
+    @Transactional
     public void assignClassroomToStudents(Long classroomId, AddStudentsRequest request, UserAuthenticated userAuthenticated) {
         Classroom classroom = findById(classroomId, userAuthenticated);
 

@@ -18,6 +18,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     private final TokenAuthenticationFilter tokenAuthenticationFilter;
+        private final OpenEndpointRateLimitFilter openEndpointRateLimitFilter;
     private final CustomAuthenticationEntryPoint authenticationEntryPoint;
     private final CustomAccessDeniedHandler accessDeniedHandler;
     @Bean
@@ -65,7 +66,8 @@ public class SecurityConfig {
 
                         .anyRequest().authenticated()
                 )
-                .addFilterBefore(tokenAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                    .addFilterBefore(openEndpointRateLimitFilter, UsernamePasswordAuthenticationFilter.class)
+                    .addFilterAfter(tokenAuthenticationFilter, OpenEndpointRateLimitFilter.class);
 
         return http.build();
     }

@@ -18,13 +18,16 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
             AuthenticationException authException
     ) throws IOException {
 
-        response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
 
         response.getWriter().write("""
                 {
+                    "status": 401,
                     "error": "UNAUTHORIZED",
-                    "message": "Invalid token"}
-                """);
+                    "message": "%s"
+                    }
+                """.formatted(authException.getMessage()));
     }
 }

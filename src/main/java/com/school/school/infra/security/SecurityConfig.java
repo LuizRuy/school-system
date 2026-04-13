@@ -1,8 +1,10 @@
 package com.school.school.infra.security;
 
+import io.swagger.v3.oas.models.PathItem;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -50,6 +52,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/users/update").hasAnyRole("ADMIN", "USER")
                         .requestMatchers("/api/v1/users/disable/**").hasRole("ADMIN")
                         .requestMatchers("/api/v1/users/change-password").hasAnyRole("ADMIN", "USER")
+                        .requestMatchers(HttpMethod.GET, "/api/v1/users").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/v1/users/**").hasRole("ADMIN")
 
                         .requestMatchers("/api/v1/students", "/api/v1/students/**").hasAnyRole("ADMIN", "USER")
                         .requestMatchers("/api/v1/attendances", "/api/v1/attendances/**").hasAnyRole("ADMIN", "USER")

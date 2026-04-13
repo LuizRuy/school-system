@@ -2,17 +2,17 @@ package com.school.school.controller;
 
 
 import com.school.school.infra.security.UserAuthenticated;
-import com.school.school.model.dto.user.ChangePasswordRequest;
-import com.school.school.model.dto.user.UserRequest;
-import com.school.school.model.dto.user.UserResponse;
-import com.school.school.model.dto.user.UserUpdate;
+import com.school.school.model.dto.user.*;
 import com.school.school.service.UserService;
 import jakarta.validation.Valid;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("api/v1/users")
@@ -33,11 +33,22 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.OK).body(userService.update(userUpdate, authenticatedUser));
     }
 
-    // todo: trocar para uma rota de desativar usuario
     @PatchMapping("/disable/{userId}")
     public ResponseEntity<Void> deleteUser(@PathVariable Long userId) {
         userService.disable(userId);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<UserDTO> getUserById(@PathVariable Long id) {
+        UserDTO userDTO = userService.getUserById(id);
+        return ResponseEntity.status(HttpStatus.OK).body(userDTO);
+    }
+
+    @GetMapping
+    public ResponseEntity<List<UserDTO>> getAllUsers() {
+        List<UserDTO> users = userService.getAllUsers();
+        return ResponseEntity.status(HttpStatus.OK).body(users);
     }
 
     @PatchMapping("/change-password")

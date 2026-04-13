@@ -5,10 +5,7 @@ import com.school.school.infra.exception.EntityAlreadyExistsException;
 import com.school.school.infra.exception.EntityNotFoundException;
 import com.school.school.infra.security.UserAuthenticated;
 import com.school.school.model.User;
-import com.school.school.model.dto.user.ChangePasswordRequest;
-import com.school.school.model.dto.user.UserRequest;
-import com.school.school.model.dto.user.UserResponse;
-import com.school.school.model.dto.user.UserUpdate;
+import com.school.school.model.dto.user.*;
 import com.school.school.model.enums.Role;
 import com.school.school.model.enums.Status;
 import com.school.school.repository.UserRepository;
@@ -17,7 +14,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
@@ -101,4 +100,33 @@ public class UserService {
 
         userRepository.save(user);
    }
+
+   public List<UserDTO> getAllUsers() {
+        List<User> users = userRepository.findAll();
+        return users.stream()
+                .map(user -> new UserDTO(
+                        user.getId(),
+                        user.getEmail(),
+                        user.getFirstName(),
+                        user.getLastName(),
+                        user.getCreatedAt(),
+                        user.getUpdatedAt(),
+                        user.getStatus().toString()
+                ))
+                .collect(Collectors.toList());
+    }
+
+    public UserDTO getUserById(Long id) {
+        User user = findById(id);
+        return new UserDTO(
+                user.getId(),
+                user.getEmail(),
+                user.getFirstName(),
+                user.getLastName(),
+                user.getCreatedAt(),
+                user.getUpdatedAt(),
+                user.getStatus().toString()
+        );
+    }
+
 }

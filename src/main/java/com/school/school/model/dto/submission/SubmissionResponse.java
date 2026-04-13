@@ -1,15 +1,11 @@
 package com.school.school.model.dto.submission;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 
+import lombok.Builder;
 import java.time.LocalDateTime;
 import java.util.List;
 
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
+@Builder
 public class SubmissionResponse {
     private Long taskId;
     private String taskTitle;

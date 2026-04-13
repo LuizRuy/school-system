@@ -2,6 +2,7 @@ package com.school.school.service;
 
 import com.school.school.infra.exception.EntityNotFoundException;
 import com.school.school.infra.security.UserAuthenticated;
+import com.school.school.mapper.SubmissionMapper;
 import com.school.school.model.Student;
 import com.school.school.model.Submission;
 import com.school.school.model.Task;
@@ -23,18 +24,14 @@ public class SubmissionService {
     private final SubmissionRepository submissionRepository;
     private final TaskService taskService;
     private final StudentService studentService;
+    private final SubmissionMapper submissionMapper;
 
     public void addSubmission(SubmissionRequest submissionRequest, UserAuthenticated userAuthenticated) {
 
         Student student = studentService.findStudent(submissionRequest.getStudentId(), userAuthenticated);
         Task task = taskService.getById(submissionRequest.getTaskId(), userAuthenticated);
 
-        Submission submission = new Submission();
-        submission.setStudent(student);
-        submission.setTask(task);
-        submission.setSubmitted(submissionRequest.getSubmitted());
-
-        submissionRepository.save(submission);
+        submissionRepository.save(submissionMapper.toEntity(submissionRequest, student, task));
     }
 
     @Transactional
@@ -42,18 +39,11 @@ public class SubmissionService {
 
         Task task = taskService.getById(taskId, userAuthenticated);
 
-        List<Submission> submissions = submissionsRequest.getSubmissions().entrySet()
-                .stream()
-                .map(entry -> {
-                    Submission s = new Submission();
-                    s.setTask(task);
-                    s.setStudent(
-                            studentService.findStudent(entry.getKey(), userAuthenticated)
-                    );
-                    s.setSubmitted(entry.getValue());
-                    return s;
-                })
-                .toList();
+        List<Submission> submissions = submissionMapper.toSubmissions(
+                submissionsRequest.getSubmissions(),
+                task,
+                userAuthenticated
+        );
 
         submissionRepository.saveAll(submissions);
 
@@ -64,18 +54,7 @@ public class SubmissionService {
 
         List<Submission> submissions = submissionRepository.findByTask(task);
 
-        return new SubmissionResponse(
-                task.getId(),
-                task.getName(),
-                task.getCreatedAt(),
-                submissions.stream().map(submission -> {
-                    StudentSubmission studentSubmission = new StudentSubmission();
-                    studentSubmission.setStudentId(submission.getStudent().getId());
-                    studentSubmission.setStudentName(submission.getStudent().getName());
-                    studentSubmission.setSubmitted(submission.getSubmitted());
-                    return studentSubmission;
-                }).toList()
-        );
+        return submissionMapper.toSubmissionResponse(task, submissions);
     }
 
 

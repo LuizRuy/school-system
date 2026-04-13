@@ -4,6 +4,7 @@ import com.school.school.infra.exception.BusinessException;
 import com.school.school.infra.exception.EntityAlreadyExistsException;
 import com.school.school.infra.exception.EntityNotFoundException;
 import com.school.school.infra.security.UserAuthenticated;
+import com.school.school.mapper.UserMapper;
 import com.school.school.model.User;
 import com.school.school.model.dto.user.*;
 import com.school.school.model.enums.Role;
@@ -23,6 +24,7 @@ import java.util.stream.Collectors;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
 
     public void save(UserRequest userRequest) {
@@ -33,16 +35,7 @@ public class UserService {
 
         String hashedPassword = passwordEncoder.encode(userRequest.getPassword());
 
-        User user = new User();
-        user.setEmail(userRequest.getEmail());
-        user.setPassword(hashedPassword);
-        user.setFirstName(userRequest.getFirstName());
-        user.setLastName(userRequest.getLastName());
-        user.setCreatedAt(LocalDateTime.now());
-        user.setRole(Role.USER);
-        user.setStatus(Status.ENABLED);
-
-        userRepository.save(user);
+        userRepository.save(userMapper.toEntity(userRequest, hashedPassword));
 
     }
 
@@ -104,29 +97,13 @@ public class UserService {
    public List<UserDTO> getAllUsers() {
         List<User> users = userRepository.findAll();
         return users.stream()
-                .map(user -> new UserDTO(
-                        user.getId(),
-                        user.getEmail(),
-                        user.getFirstName(),
-                        user.getLastName(),
-                        user.getCreatedAt(),
-                        user.getUpdatedAt(),
-                        user.getStatus().toString()
-                ))
-                .collect(Collectors.toList());
+                .map(userMapper::toDTO)
+                .toList();
     }
 
     public UserDTO getUserById(Long id) {
         User user = findById(id);
-        return new UserDTO(
-                user.getId(),
-                user.getEmail(),
-                user.getFirstName(),
-                user.getLastName(),
-                user.getCreatedAt(),
-                user.getUpdatedAt(),
-                user.getStatus().toString()
-        );
+        return userMapper.toDTO(user);
     }
 
 }

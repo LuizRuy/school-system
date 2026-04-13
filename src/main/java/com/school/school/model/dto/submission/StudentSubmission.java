@@ -1,13 +1,9 @@
 package com.school.school.model.dto.submission;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.Builder;
 
 
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
+@Builder
 public class StudentSubmission {
     private Long studentId;
     private String studentName;

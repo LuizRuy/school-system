@@ -1,10 +1,8 @@
 package com.school.school.model.dto.auth;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Builder;
 
-@AllArgsConstructor
-@Data
+@Builder
 public class AuthResponse {
     private String token;
     private String refreshToken;

@@ -4,6 +4,7 @@ import com.school.school.infra.exception.BusinessException;
 import com.school.school.infra.exception.EntityNotFoundException;
 import com.school.school.infra.security.JwtUtil;
 import com.school.school.infra.security.RefreshTokenService;
+import com.school.school.mapper.AuthMapper;
 import com.school.school.model.RefreshToken;
 import com.school.school.model.User;
 import com.school.school.model.dto.auth.AuthRequest;
@@ -28,6 +29,7 @@ public class AuthService {
     private final UserRepository userRepository;
     private final RefreshTokenService refreshTokenService;
     private final RefreshTokenRepository refreshTokenRepository;
+    private final AuthMapper authMapper;
 
     public AuthResponse login(AuthRequest authRequest) {
 
@@ -50,14 +52,7 @@ public class AuthService {
 
             RefreshToken refreshToken = refreshTokenService.createRefreshToken(user.getEmail());
 
-            return new AuthResponse(
-                    jwt,
-                    refreshToken.getToken(),
-                    user.getFirstName(),
-                    user.getLastName(),
-                    user.getEmail(),
-                    user.getRole().name()
-            );
+            return authMapper.toAuthResponse(jwt, refreshToken, user);
     }
 
     public User findByEmail(String email){
@@ -75,6 +70,6 @@ public class AuthService {
 
         RefreshToken newRefreshToken = refreshTokenService.createRefreshToken(refreshToken.getUser().getEmail());
 
-        return new RefreshTokenResponse(newToken, newRefreshToken.getToken());
+        return authMapper.toRefreshTokenResponse(newToken, newRefreshToken);
     }
 }

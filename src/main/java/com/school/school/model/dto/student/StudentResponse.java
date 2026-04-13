@@ -1,12 +1,9 @@
 package com.school.school.model.dto.student;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-
+import lombok.Builder;
 import java.time.LocalDate;
 
-@Data
-@AllArgsConstructor
+@Builder
 public class StudentResponse {
     private Long id;
     private String name;

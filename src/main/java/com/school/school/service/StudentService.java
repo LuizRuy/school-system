@@ -2,6 +2,7 @@ package com.school.school.service;
 
 import com.school.school.infra.exception.EntityNotFoundException;
 import com.school.school.infra.security.UserAuthenticated;
+import com.school.school.mapper.StudentMapper;
 import com.school.school.model.Student;
 import com.school.school.model.User;
 import com.school.school.model.dto.student.CreateStudentRequest;
@@ -14,25 +15,19 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class StudentService {
 
     private final StudentRepository studentRepository;
+    private final StudentMapper studentMapper;
 
     public void createStudent(CreateStudentRequest request, UserAuthenticated authenticatedUser) {
 
         User user = getAuthenticatedUser(authenticatedUser);
 
-        Student student = new Student();
-        student.setName(request.getName());
-        student.setDateOfBirth(request.getDateOfBirth());
-        student.setUser(user);
-        student.setCreatedAt(LocalDateTime.now());
-
-        studentRepository.save(student);
+        studentRepository.save(studentMapper.toEntity(request, user));
     }
 
     public Student findStudent(Long id, UserAuthenticated authenticatedUser) {
@@ -61,30 +56,22 @@ public class StudentService {
 
     public void deleteStudent(Long studentId, UserAuthenticated authenticatedUser) {
         Student student = findStudent(studentId, authenticatedUser);
+
         studentRepository.delete(student);
     }
 
     public StudentResponse findByStudentId(Long studentId, UserAuthenticated authenticatedUser) {
         Student student = findStudent(studentId, authenticatedUser);
-        return new StudentResponse(
-                student.getId(),
-                student.getName(),
-                student.getObservations(),
-                student.getDateOfBirth()
-        );
+
+        return studentMapper.toDto(student);
     }
 
     public List<StudentResponse> findStudentsByUser(UserAuthenticated authenticatedUser) {
         User user = getAuthenticatedUser(authenticatedUser);
         List<Student> students = studentRepository.findByUser(user);
         return students.stream()
-                .map(student -> new StudentResponse(
-                        student.getId(),
-                        student.getName(),
-                        student.getObservations(),
-                        student.getDateOfBirth()
-                ))
-                .collect(Collectors.toList());
+                .map(studentMapper::toDto)
+                .toList();
     }
 
     private User getAuthenticatedUser(UserAuthenticated authenticatedUser) {

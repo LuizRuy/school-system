@@ -2,6 +2,7 @@ package com.school.school.service;
 
 import com.school.school.infra.exception.EntityNotFoundException;
 import com.school.school.infra.security.UserAuthenticated;
+import com.school.school.mapper.TaskMapper;
 import com.school.school.model.Task;
 import com.school.school.model.User;
 import com.school.school.model.dto.task.CreateTaskRequest;
@@ -19,27 +20,19 @@ import java.util.List;
 public class TaskService {
 
     private final TaskRepository taskRepository;
+    private final TaskMapper taskMapper;
 
     public void createTask(CreateTaskRequest createTaskRequest, UserAuthenticated userAuthenticated) {
         User user = userAuthenticated.getUser();
 
-        Task task = new Task();
-        task.setName(createTaskRequest.getName());
-        task.setUser(user);
-        task.setCreatedAt(LocalDateTime.now());
-
-        taskRepository.save(task);
+        taskRepository.save(taskMapper.toEntity(createTaskRequest, user));
     }
 
     public TaskResponse findTaskById(Long taskId, UserAuthenticated userAuthenticated) {
 
         Task task = getById(taskId, userAuthenticated);
 
-        TaskResponse taskResponse = new TaskResponse();
-        taskResponse.setId(task.getId());
-        taskResponse.setName(task.getName());
-
-        return taskResponse;
+        return taskMapper.toDTO(task);
     }
 
     public Task getById(Long taskId, UserAuthenticated userAuthenticated) {
@@ -60,12 +53,9 @@ public class TaskService {
 
         List<Task> tasks = taskRepository.findByUserId(user.getId());
 
-        return tasks.stream().map(task -> {
-            TaskResponse taskResponse = new TaskResponse();
-            taskResponse.setId(task.getId());
-            taskResponse.setName(task.getName());
-            return taskResponse;
-        }).toList();
+        return tasks.stream()
+                .map(taskMapper::toDTO)
+                .toList();
     }
 
     public void deleteTaskById(Long taskId, UserAuthenticated userAuthenticated) {

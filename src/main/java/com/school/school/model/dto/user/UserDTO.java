@@ -1,6 +1,7 @@
 package com.school.school.model.dto.user;
 
 import lombok.Builder;
+import lombok.Data;
 
 import java.time.LocalDateTime;
 

@@ -4,7 +4,7 @@
 
 **Blocked by:** 02 (auditing owns timestamps; Clock seam).
 
-**Status:** done
+**Status:** done (commit e27abdb)
 
 - [x] One catalog lists every open endpoint and its rate limit; both security config and rate filter derive their behaviour from it
 - [x] Adding an entry to the catalog makes the endpoint public and rate-limited with no other edit

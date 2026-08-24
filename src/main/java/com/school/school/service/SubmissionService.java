@@ -6,11 +6,11 @@ import com.school.school.mapper.SubmissionMapper;
 import com.school.school.model.Student;
 import com.school.school.model.Submission;
 import com.school.school.model.Task;
-import com.school.school.model.dto.submission.StudentSubmission;
 import com.school.school.model.dto.submission.SubmissionRequest;
 import com.school.school.model.dto.submission.SubmissionResponse;
 import com.school.school.model.dto.submission.SubmissionsRequest;
 import com.school.school.repository.SubmissionRepository;
+import com.school.school.service.ownership.OwnershipGuard;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,35 +22,36 @@ import java.util.List;
 public class SubmissionService {
 
     private final SubmissionRepository submissionRepository;
-    private final TaskService taskService;
+    private final OwnershipGuard<Task> taskOwnershipGuard;
+    private final OwnershipGuard<Student> studentOwnershipGuard;
     private final StudentService studentService;
     private final SubmissionMapper submissionMapper;
 
+    @Transactional
     public void addSubmission(SubmissionRequest submissionRequest, UserAuthenticated userAuthenticated) {
 
-        Student student = studentService.findStudent(submissionRequest.getStudentId(), userAuthenticated);
-        Task task = taskService.getById(submissionRequest.getTaskId(), userAuthenticated);
+        Task task = taskOwnershipGuard.resolve(submissionRequest.getTaskId(), userAuthenticated);
+        Student student = studentOwnershipGuard.resolve(submissionRequest.getStudentId(), userAuthenticated);
 
-        submissionRepository.save(submissionMapper.toEntity(submissionRequest, student, task));
+        record(submissionMapper.toEntity(submissionRequest, student, task));
     }
 
     @Transactional
     public void addSubmissions(Long taskId, SubmissionsRequest submissionsRequest, UserAuthenticated userAuthenticated) {
 
-        Task task = taskService.getById(taskId, userAuthenticated);
+        Task task = taskOwnershipGuard.resolve(taskId, userAuthenticated);
 
         List<Submission> submissions = submissionMapper.toSubmissions(
                 submissionsRequest.getSubmissions(),
                 task,
-                userAuthenticated
+                studentService.resolveAll(submissionsRequest.getSubmissions().keySet(), userAuthenticated)
         );
 
-        submissionRepository.saveAll(submissions);
-
+        submissions.forEach(this::record);
     }
 
     public SubmissionResponse getSubmissions(Long taskId, UserAuthenticated userAuthenticated) {
-        Task task = taskService.getById(taskId, userAuthenticated);
+        Task task = taskOwnershipGuard.resolve(taskId, userAuthenticated);
 
         List<Submission> submissions = submissionRepository.findByTask(task);
 
@@ -58,10 +59,11 @@ public class SubmissionService {
     }
 
 
+    @Transactional
     public void updateSubmission(SubmissionRequest submissionRequest, UserAuthenticated userAuthenticated) {
 
-        taskService.getById(submissionRequest.getTaskId(), userAuthenticated);
-        studentService.findStudent(submissionRequest.getStudentId(), userAuthenticated);
+        taskOwnershipGuard.authorize(submissionRequest.getTaskId(), userAuthenticated);
+        studentOwnershipGuard.authorize(submissionRequest.getStudentId(), userAuthenticated);
 
         Submission submission = submissionRepository.findByTaskIdAndStudentId(submissionRequest.getTaskId(), submissionRequest.getStudentId())
                 .orElseThrow(() -> new EntityNotFoundException("Submission not found for task ID " + submissionRequest.getTaskId() +
@@ -71,6 +73,16 @@ public class SubmissionService {
 
         submissionRepository.save(submission);
 
+    }
+
+    private void record(Submission incoming) {
+        submissionRepository.findByTaskIdAndStudentId(incoming.getTask().getId(), incoming.getStudent().getId())
+                .ifPresentOrElse(
+                        existing -> {
+                            existing.setSubmitted(incoming.getSubmitted());
+                            submissionRepository.save(existing);
+                        },
+                        () -> submissionRepository.save(incoming));
     }
 
 }

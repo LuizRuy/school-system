@@ -1,24 +1,19 @@
 package com.school.school.mapper;
 
-import com.school.school.infra.security.UserAuthenticated;
+import com.school.school.infra.exception.EntityNotFoundException;
 import com.school.school.model.Student;
 import com.school.school.model.Submission;
 import com.school.school.model.Task;
 import com.school.school.model.dto.submission.StudentSubmission;
 import com.school.school.model.dto.submission.SubmissionRequest;
 import com.school.school.model.dto.submission.SubmissionResponse;
-import com.school.school.service.StudentService;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Map;
 
 @Component
-@RequiredArgsConstructor
 public class SubmissionMapper {
-
-    private final StudentService studentService;
 
     public Submission toEntity(SubmissionRequest dto, Student student, Task task) {
         return Submission.builder()
@@ -47,17 +42,21 @@ public class SubmissionMapper {
                 .build();
     }
 
-    public List<Submission> toSubmissions(Map<Long, Boolean> submissionsMap, Task task, UserAuthenticated userAuthenticated) {
+    public List<Submission> toSubmissions(Map<Long, Boolean> submissionsMap, Task task, Map<Long, Student> resolvedStudents) {
         return submissionsMap.entrySet()
                 .stream()
-                .map(entry -> toSubmission(entry.getKey(), entry.getValue(), task, userAuthenticated))
+                .map(entry -> toSubmission(entry.getKey(), entry.getValue(), task, resolvedStudents))
                 .toList();
     }
 
-    public Submission toSubmission(Long studentId, Boolean submitted, Task task, UserAuthenticated userAuthenticated) {
+    public Submission toSubmission(Long studentId, Boolean submitted, Task task, Map<Long, Student> resolvedStudents) {
+        Student student = resolvedStudents.get(studentId);
+        if (student == null) {
+            throw new EntityNotFoundException("Student not found with id: " + studentId);
+        }
         return Submission.builder()
                 .task(task)
-                .student(studentService.findStudent(studentId, userAuthenticated))
+                .student(student)
                 .submitted(submitted)
                 .build();
     }

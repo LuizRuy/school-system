@@ -25,7 +25,7 @@ import java.util.List;
 @AllArgsConstructor
 public class TokenAuthenticationFilter extends OncePerRequestFilter {
 
-    private final JwtUtil jwtUtil;
+    private final TokenLifecycle tokenLifecycle;
     private final UserRepository userRepository;
     private final CustomAuthenticationEntryPoint authenticationEntryPoint;
 
@@ -39,7 +39,7 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
             String token = authHeader.substring(7);
 
             try {
-                Claims claims = jwtUtil.validateToken(token);
+                Claims claims = tokenLifecycle.validateAccess(token);
 
                 Long userId = claims.get("userId", Long.class);
                 String role = claims.get("role", String.class);

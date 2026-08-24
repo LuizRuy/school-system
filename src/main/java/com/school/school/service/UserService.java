@@ -38,11 +38,6 @@ public class UserService {
 
     }
 
-    public User findByEmail(String email) {
-        return userRepository.findByEmail(email).
-                orElseThrow(() -> new EntityNotFoundException("User with email " + email + " not found"));
-    }
-
     public User findById(Long id) {
         return  userRepository.findById(id).
                 orElseThrow(() -> new EntityNotFoundException("User with id " + id + " not found"));

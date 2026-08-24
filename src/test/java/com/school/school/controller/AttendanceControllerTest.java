@@ -14,6 +14,8 @@ import com.school.school.repository.AttendanceRepository;
 import com.school.school.repository.ClassSessionRepository;
 import com.school.school.repository.StudentRepository;
 import com.school.school.service.AttendanceService;
+import com.school.school.service.ownership.OwnershipGuard;
+import com.school.school.service.ownership.OwnershipGuards;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -25,16 +27,20 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.Clock;
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.same;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
@@ -90,13 +96,13 @@ class AttendanceControllerTest {
     static class RealGuards {
 
         @Bean
-        com.school.school.service.ownership.OwnershipGuard<Student> studentOwnershipGuard(StudentRepository studentRepository) {
-            return com.school.school.service.ownership.OwnershipGuards.forStudents(studentRepository);
+        OwnershipGuard<Student> studentOwnershipGuard(StudentRepository studentRepository) {
+            return OwnershipGuards.forStudents(studentRepository);
         }
 
         @Bean
-        com.school.school.service.ownership.OwnershipGuard<ClassSession> classSessionOwnershipGuard(ClassSessionRepository classSessionRepository) {
-            return com.school.school.service.ownership.OwnershipGuards.forClassSessions(classSessionRepository);
+        OwnershipGuard<ClassSession> classSessionOwnershipGuard(ClassSessionRepository classSessionRepository) {
+            return OwnershipGuards.forClassSessions(classSessionRepository);
         }
     }
 
@@ -105,7 +111,7 @@ class AttendanceControllerTest {
         user.setId(userId);
         user.setEmail("teacher-%d@school.test".formatted(userId));
         return new UsernamePasswordAuthenticationToken(new UserAuthenticated(user), null,
-                java.util.List.of(new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_USER")));
+                List.of(new SimpleGrantedAuthority("ROLE_USER")));
     }
 
     private Student ownedStudent(long studentId, long ownerId) {
@@ -189,7 +195,7 @@ class AttendanceControllerTest {
                 .andExpect(status().isCreated());
 
         ArgumentCaptor<Attendance> saved = ArgumentCaptor.forClass(Attendance.class);
-        verify(attendanceRepository, org.mockito.Mockito.times(2)).save(saved.capture());
+        verify(attendanceRepository, times(2)).save(saved.capture());
         assertThat(saved.getAllValues()).anySatisfy(row -> {
             assertThat(row).isSameAs(alreadyMarked);
             assertThat(row.isPresent()).isFalse();
@@ -212,7 +218,7 @@ class AttendanceControllerTest {
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.status").value(403));
 
-        verify(attendanceRepository, never()).save(org.mockito.ArgumentMatchers.any());
+        verify(attendanceRepository, never()).save(any());
     }
 
     @Test
@@ -227,7 +233,7 @@ class AttendanceControllerTest {
                 .andExpect(jsonPath("$.status").value(404))
                 .andExpect(jsonPath("$.message").value("Class session not found with id: 31"));
 
-        verify(attendanceRepository, never()).save(org.mockito.ArgumentMatchers.any());
+        verify(attendanceRepository, never()).save(any());
     }
 
     @Test

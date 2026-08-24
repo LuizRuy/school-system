@@ -26,6 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.LinkedHashMap;
+import java.util.UUID;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -81,7 +82,7 @@ class AttendanceRecordingPersistenceTest {
         return userRepository.saveAndFlush(User.builder()
                 .firstName("Ada")
                 .lastName("Lovelace")
-                .email("ada-%s@example.com".formatted(java.util.UUID.randomUUID()))
+                .email("ada-%s@example.com".formatted(UUID.randomUUID()))
                 .password("hashed")
                 .build());
     }

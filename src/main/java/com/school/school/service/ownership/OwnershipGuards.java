@@ -23,7 +23,17 @@ public final class OwnershipGuards {
             String entityType,
             OwnershipErrorMode errorMode
     ) {
-        return new RepositoryOwnershipGuard<>(finder, ownerIdOf, entityType, errorMode);
+        return ownedBy(finder, ownerIdOf, null, entityType, errorMode);
+    }
+
+    public static <T> OwnershipGuard<T> ownedBy(
+            Function<Long, Optional<T>> finder,
+            Function<T, Long> ownerIdOf,
+            Function<Long, Optional<Long>> ownerIdInStorage,
+            String entityType,
+            OwnershipErrorMode errorMode
+    ) {
+        return new RepositoryOwnershipGuard<>(finder, ownerIdOf, ownerIdInStorage, entityType, errorMode);
     }
 
     public static OwnershipGuard<Task> forTasks(TaskRepository taskRepository) {
@@ -48,6 +58,7 @@ public final class OwnershipGuards {
         return ownedBy(
                 studentRepository::findById,
                 student -> student.getUser().getId(),
+                studentRepository::findOwnerIdById,
                 "Student",
                 OwnershipErrorMode.FORBIDDEN
         );
@@ -57,6 +68,7 @@ public final class OwnershipGuards {
         return ownedBy(
                 classSessionRepository::findById,
                 classSession -> classSession.getUser().getId(),
+                classSessionRepository::findOwnerIdById,
                 "Class session",
                 OwnershipErrorMode.NOT_FOUND
         );

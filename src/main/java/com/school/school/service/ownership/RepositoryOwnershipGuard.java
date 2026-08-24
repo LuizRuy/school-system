@@ -10,6 +10,7 @@ import java.util.function.Function;
 record RepositoryOwnershipGuard<T>(
         Function<Long, Optional<T>> finder,
         Function<T, Long> ownerIdOf,
+        Function<Long, Optional<Long>> ownerIdInStorage,
         String entityType,
         OwnershipErrorMode errorMode
 ) implements OwnershipGuard<T> {
@@ -19,14 +20,32 @@ record RepositoryOwnershipGuard<T>(
         T entity = finder.apply(id)
                 .orElseThrow(() -> notFound(id));
 
-        if (!ownerIdOf.apply(entity).equals(principal.getUser().getId())) {
-            if (errorMode == OwnershipErrorMode.NOT_FOUND) {
-                throw notFound(id);
-            }
-            throw new AccessDeniedException("You do not have permission to access this " + entityType.toLowerCase());
-        }
+        denyForeign(id, principal, ownerIdOf.apply(entity));
 
         return entity;
+    }
+
+    @Override
+    public void authorize(Long id, UserAuthenticated principal) {
+        if (ownerIdInStorage == null) {
+            resolve(id, principal);
+            return;
+        }
+
+        Long storedOwnerId = ownerIdInStorage.apply(id)
+                .orElseThrow(() -> notFound(id));
+
+        denyForeign(id, principal, storedOwnerId);
+    }
+
+    private void denyForeign(Long id, UserAuthenticated principal, Long ownerId) {
+        if (ownerId.equals(principal.getUser().getId())) {
+            return;
+        }
+        if (errorMode == OwnershipErrorMode.NOT_FOUND) {
+            throw notFound(id);
+        }
+        throw new AccessDeniedException("You do not have permission to access this " + entityType.toLowerCase());
     }
 
     private EntityNotFoundException notFound(Long id) {

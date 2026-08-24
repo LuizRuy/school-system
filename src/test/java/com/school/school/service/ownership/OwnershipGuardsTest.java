@@ -19,7 +19,10 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class OwnershipGuardsTest {
@@ -195,6 +198,54 @@ class OwnershipGuardsTest {
         assertThatThrownBy(() -> OwnershipGuards.forClassSessions(repository).resolve(31L, principal))
                 .isInstanceOf(EntityNotFoundException.class)
                 .hasMessage("Class session not found with id: 31");
+    }
+
+    @Test
+    @DisplayName("Student guard authorize checks ownership in storage without fetching the student")
+    void studentGuardAuthorizeChecksStorageWithoutFetchingTheStudent() {
+        StudentRepository repository = mock(StudentRepository.class);
+        when(repository.findOwnerIdById(21L)).thenReturn(Optional.of(7L));
+
+        OwnershipGuards.forStudents(repository).authorize(21L, principal);
+
+        verify(repository, never()).findById(any());
+    }
+
+    @Test
+    @DisplayName("Student guard authorize denies a foreign student as 403 from the storage check")
+    void studentGuardAuthorizeDeniesForeignStudentFromStorageCheck() {
+        StudentRepository repository = mock(StudentRepository.class);
+        when(repository.findOwnerIdById(21L)).thenReturn(Optional.of(8L));
+
+        assertThatThrownBy(() -> OwnershipGuards.forStudents(repository).authorize(21L, principal))
+                .isInstanceOf(AccessDeniedException.class)
+                .hasMessage("You do not have permission to access this student");
+
+        verify(repository, never()).findById(any());
+    }
+
+    @Test
+    @DisplayName("Student guard authorize reports a missing student as 404 from the storage check")
+    void studentGuardAuthorizeReportsMissingStudentFromStorageCheck() {
+        StudentRepository repository = mock(StudentRepository.class);
+        when(repository.findOwnerIdById(99L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> OwnershipGuards.forStudents(repository).authorize(99L, principal))
+                .isInstanceOf(EntityNotFoundException.class)
+                .hasMessage("Student not found with id: 99");
+    }
+
+    @Test
+    @DisplayName("Class session guard authorize masks a foreign class session as 404 from the storage check")
+    void classSessionGuardAuthorizeMasksForeignSessionFromStorageCheck() {
+        ClassSessionRepository repository = mock(ClassSessionRepository.class);
+        when(repository.findOwnerIdById(31L)).thenReturn(Optional.of(8L));
+
+        assertThatThrownBy(() -> OwnershipGuards.forClassSessions(repository).authorize(31L, principal))
+                .isInstanceOf(EntityNotFoundException.class)
+                .hasMessage("Class session not found with id: 31");
+
+        verify(repository, never()).findById(any());
     }
 
 }

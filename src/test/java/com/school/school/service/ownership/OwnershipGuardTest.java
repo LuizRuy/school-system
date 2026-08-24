@@ -17,6 +17,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class OwnershipGuardTest {
 
     private final Map<Long, Task> tasks = new HashMap<>();
+    private final Map<Long, Long> taskOwnerIdsInStorage = new HashMap<>();
 
     private OwnershipGuard<Task> guard() {
         return guard(OwnershipErrorMode.FORBIDDEN);
@@ -26,6 +27,16 @@ class OwnershipGuardTest {
         return OwnershipGuards.ownedBy(
                 id -> Optional.ofNullable(tasks.get(id)),
                 task -> task.getUser().getId(),
+                "Task",
+                errorMode
+        );
+    }
+
+    private OwnershipGuard<Task> projectingGuard(OwnershipErrorMode errorMode) {
+        return OwnershipGuards.ownedBy(
+                id -> Optional.ofNullable(tasks.get(id)),
+                task -> task.getUser().getId(),
+                id -> Optional.ofNullable(taskOwnerIdsInStorage.get(id)),
                 "Task",
                 errorMode
         );
@@ -86,6 +97,97 @@ class OwnershipGuardTest {
 
         org.assertj.core.api.Assertions.assertThatThrownBy(
                         () -> guard(OwnershipErrorMode.NOT_FOUND).resolve(42L, principal(userWithId(7L))))
+                .isInstanceOf(EntityNotFoundException.class)
+                .hasMessage("Task not found with id: 42");
+    }
+
+    @Test
+    @DisplayName("Authorize passes silently for an entity owned by the principal and returns nothing to discard")
+    void authorizePassesSilentlyForOwnedEntity() {
+        tasks.put(42L, ownedTask(42L, 7L));
+
+        guard().authorize(42L, principal(userWithId(7L)));
+    }
+
+    @Test
+    @DisplayName("Authorize reports a missing entity as not found")
+    void authorizeReportsMissingEntityAsNotFound() {
+        org.assertj.core.api.Assertions.assertThatThrownBy(
+                        () -> guard().authorize(99L, principal(userWithId(7L))))
+                .isInstanceOf(EntityNotFoundException.class)
+                .hasMessage("Task not found with id: 99");
+    }
+
+    @Test
+    @DisplayName("Authorize denies a foreign entity when the error mode is FORBIDDEN")
+    void authorizeDeniesForeignEntityInForbiddenMode() {
+        tasks.put(42L, ownedTask(42L, 8L));
+
+        org.assertj.core.api.Assertions.assertThatThrownBy(
+                        () -> guard().authorize(42L, principal(userWithId(7L))))
+                .isInstanceOf(AccessDeniedException.class)
+                .hasMessage("You do not have permission to access this task");
+    }
+
+    @Test
+    @DisplayName("Authorize masks a foreign entity as not found when the error mode is NOT_FOUND")
+    void authorizeMasksForeignEntityInNotFoundErrorMode() {
+        tasks.put(42L, ownedTask(42L, 8L));
+
+        org.assertj.core.api.Assertions.assertThatThrownBy(
+                        () -> guard(OwnershipErrorMode.NOT_FOUND).authorize(42L, principal(userWithId(7L))))
+                .isInstanceOf(EntityNotFoundException.class)
+                .hasMessage("Task not found with id: 42");
+    }
+
+    @Test
+    @DisplayName("Authorize through the storage projection never fetches the entity itself")
+    void authorizeThroughProjectionNeverFetchesTheEntity() {
+        Map<Long, Optional<Task>> finderCalls = new HashMap<>();
+        OwnershipGuard<Task> guard = OwnershipGuards.ownedBy(
+                id -> {
+                    finderCalls.put(id, Optional.ofNullable(tasks.get(id)));
+                    return Optional.ofNullable(tasks.get(id));
+                },
+                task -> task.getUser().getId(),
+                id -> Optional.ofNullable(taskOwnerIdsInStorage.get(id)),
+                "Task",
+                OwnershipErrorMode.FORBIDDEN
+        );
+        taskOwnerIdsInStorage.put(42L, 7L);
+
+        guard.authorize(42L, principal(userWithId(7L)));
+
+        assertThat(finderCalls).isEmpty();
+    }
+
+    @Test
+    @DisplayName("Authorize through the storage projection reports a missing entity as not found")
+    void projectionAuthorizeReportsMissingEntityAsNotFound() {
+        org.assertj.core.api.Assertions.assertThatThrownBy(
+                        () -> projectingGuard(OwnershipErrorMode.FORBIDDEN).authorize(99L, principal(userWithId(7L))))
+                .isInstanceOf(EntityNotFoundException.class)
+                .hasMessage("Task not found with id: 99");
+    }
+
+    @Test
+    @DisplayName("Authorize through the storage projection denies a foreign entity when the error mode is FORBIDDEN")
+    void projectionAuthorizeDeniesForeignEntityInForbiddenMode() {
+        taskOwnerIdsInStorage.put(42L, 8L);
+
+        org.assertj.core.api.Assertions.assertThatThrownBy(
+                        () -> projectingGuard(OwnershipErrorMode.FORBIDDEN).authorize(42L, principal(userWithId(7L))))
+                .isInstanceOf(AccessDeniedException.class)
+                .hasMessage("You do not have permission to access this task");
+    }
+
+    @Test
+    @DisplayName("Authorize through the storage projection masks a foreign entity as not found when the error mode is NOT_FOUND")
+    void projectionAuthorizeMasksForeignEntityInNotFoundErrorMode() {
+        taskOwnerIdsInStorage.put(42L, 8L);
+
+        org.assertj.core.api.Assertions.assertThatThrownBy(
+                        () -> projectingGuard(OwnershipErrorMode.NOT_FOUND).authorize(42L, principal(userWithId(7L))))
                 .isInstanceOf(EntityNotFoundException.class)
                 .hasMessage("Task not found with id: 42");
     }

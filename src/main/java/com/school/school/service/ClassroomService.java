@@ -1,6 +1,5 @@
 package com.school.school.service;
 
-import com.school.school.infra.exception.EntityNotFoundException;
 import com.school.school.infra.security.UserAuthenticated;
 import com.school.school.model.Classroom;
 import com.school.school.model.Student;
@@ -12,8 +11,8 @@ import com.school.school.model.dto.classroom.ClassroomStudentsResponse;
 import com.school.school.model.dto.student.StudentClassroomResponse;
 import com.school.school.repository.ClassroomRepository;
 import com.school.school.repository.StudentRepository;
+import com.school.school.service.ownership.OwnershipGuard;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,6 +26,7 @@ public class ClassroomService {
     private final ClassroomRepository classroomRepository;
     private final StudentService studentService;
     private final StudentRepository studentRepository;
+    private final OwnershipGuard<Classroom> classroomOwnershipGuard;
 
     public void createClassroom(ClassroomRequest createClassroomRequest, UserAuthenticated userAuthenticated) {
 
@@ -41,14 +41,7 @@ public class ClassroomService {
     }
 
     public Classroom findById(Long classroomId, UserAuthenticated userAuthenticated) {
-        Classroom c =  classroomRepository.findById(classroomId)
-                .orElseThrow(() -> new EntityNotFoundException("Classroom not found with id: " + classroomId));
-
-        if(!c.getUser().getId().equals(userAuthenticated.getUser().getId())) {
-            throw new AccessDeniedException("You do not have permission to access this classroom");
-        }
-
-        return c;
+        return classroomOwnershipGuard.resolve(classroomId, userAuthenticated);
     }
 
     public ClassroomStudentsResponse findClassroomById(Long classroomId, UserAuthenticated userAuthenticated) {

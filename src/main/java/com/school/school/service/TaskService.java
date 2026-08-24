@@ -1,6 +1,5 @@
 package com.school.school.service;
 
-import com.school.school.infra.exception.EntityNotFoundException;
 import com.school.school.infra.security.UserAuthenticated;
 import com.school.school.mapper.TaskMapper;
 import com.school.school.model.Task;
@@ -8,11 +7,10 @@ import com.school.school.model.User;
 import com.school.school.model.dto.task.CreateTaskRequest;
 import com.school.school.model.dto.task.TaskResponse;
 import com.school.school.repository.TaskRepository;
+import com.school.school.service.ownership.OwnershipGuard;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -21,6 +19,7 @@ public class TaskService {
 
     private final TaskRepository taskRepository;
     private final TaskMapper taskMapper;
+    private final OwnershipGuard<Task> taskOwnershipGuard;
 
     public void createTask(CreateTaskRequest createTaskRequest, UserAuthenticated userAuthenticated) {
         User user = userAuthenticated.getUser();
@@ -36,16 +35,7 @@ public class TaskService {
     }
 
     public Task getById(Long taskId, UserAuthenticated userAuthenticated) {
-        User user = userAuthenticated.getUser();
-
-        Task task = taskRepository.findById(taskId)
-                .orElseThrow(() -> new EntityNotFoundException("Task not found with id: " + taskId));
-
-        if (!task.getUser().getId().equals(user.getId())) {
-            throw new AccessDeniedException("You do not have permission to access this task");
-        }
-
-        return task;
+        return taskOwnershipGuard.resolve(taskId, userAuthenticated);
     }
 
     public List<TaskResponse> findTasksByUser(UserAuthenticated userAuthenticated) {

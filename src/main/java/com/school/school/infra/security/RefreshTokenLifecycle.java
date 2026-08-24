@@ -33,8 +33,7 @@ public class RefreshTokenLifecycle implements TokenLifecycle {
     @Override
     @Transactional
     public IssuedTokens issuePair(User user) {
-        revokeActiveTokens(user);
-        return new IssuedTokens(jwtUtil.generateToken(user), mintAndStore(user));
+        return freshPairFor(user);
     }
 
     @Override
@@ -43,11 +42,9 @@ public class RefreshTokenLifecycle implements TokenLifecycle {
         RefreshToken presented = refreshTokenRepository.findByToken(rawRefreshToken)
                 .orElseThrow(InvalidRefreshTokenException::new);
 
-        verifyNotExpired(presented);
+        deleteAndRejectIfExpired(presented);
 
-        User user = presented.getUser();
-        revokeActiveTokens(user);
-        return new IssuedTokens(jwtUtil.generateToken(user), mintAndStore(user));
+        return freshPairFor(presented.getUser());
     }
 
     @Override
@@ -55,12 +52,17 @@ public class RefreshTokenLifecycle implements TokenLifecycle {
         return jwtUtil.validateToken(rawAccessToken);
     }
 
+    private IssuedTokens freshPairFor(User user) {
+        revokeActiveTokens(user);
+        return new IssuedTokens(jwtUtil.generateToken(user), mintAndStore(user));
+    }
+
     private void revokeActiveTokens(User user) {
         refreshTokenRepository.deleteByUser(user);
         refreshTokenRepository.flush();
     }
 
-    private void verifyNotExpired(RefreshToken token) {
+    private void deleteAndRejectIfExpired(RefreshToken token) {
         if (token.getExpiresAt().isBefore(Instant.now(clock))) {
             refreshTokenRepository.delete(token);
             throw new ExpiredRefreshTokenException();

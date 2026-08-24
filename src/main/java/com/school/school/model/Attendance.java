@@ -9,6 +9,10 @@ import lombok.*;
 @AllArgsConstructor
 @Entity
 @Builder
+@Table(uniqueConstraints = @UniqueConstraint(
+        name = "uk_attendance_student_session",
+        columnNames = {"student_id", "classSession_id"}
+))
 public class Attendance {
 
     @Id

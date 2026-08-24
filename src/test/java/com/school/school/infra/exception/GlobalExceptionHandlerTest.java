@@ -1,19 +1,15 @@
 package com.school.school.infra.exception;
 
 import com.school.school.controller.UserController;
-import com.school.school.infra.security.CustomAccessDeniedHandler;
-import com.school.school.infra.security.CustomAuthenticationEntryPoint;
-import com.school.school.infra.security.OpenEndpointRateLimitFilter;
 import com.school.school.infra.security.SecurityConfig;
-import com.school.school.infra.security.TokenAuthenticationFilter;
 import com.school.school.service.UserService;
+import com.school.testsupport.OpenEndpointsSliceConfig;
+import com.school.testsupport.SecurityHandlersSliceConfig;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.MediaType;
@@ -22,7 +18,6 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
-import java.time.Clock;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.notNullValue;
@@ -34,7 +29,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(UserController.class)
-@Import({SecurityConfig.class, GlobalExceptionHandlerTest.SliceSecurityBeans.class})
+@Import({SecurityConfig.class, OpenEndpointsSliceConfig.class,
+        SecurityHandlersSliceConfig.class})
 class GlobalExceptionHandlerTest {
 
     private static final String REGISTER_URI = "/api/v1/users/register";
@@ -45,30 +41,6 @@ class GlobalExceptionHandlerTest {
 
     @MockitoBean
     private UserService userService;
-
-    @TestConfiguration
-    static class SliceSecurityBeans {
-
-        @Bean
-        CustomAuthenticationEntryPoint customAuthenticationEntryPoint() {
-            return new CustomAuthenticationEntryPoint();
-        }
-
-        @Bean
-        CustomAccessDeniedHandler customAccessDeniedHandler() {
-            return new CustomAccessDeniedHandler();
-        }
-
-        @Bean
-        OpenEndpointRateLimitFilter openEndpointRateLimitFilter() {
-            return new OpenEndpointRateLimitFilter(Clock.systemUTC());
-        }
-
-        @Bean
-        TokenAuthenticationFilter tokenAuthenticationFilter(CustomAuthenticationEntryPoint entryPoint) {
-            return new TokenAuthenticationFilter(null, null, entryPoint);
-        }
-    }
 
     private String validRegisterBody() {
         return """

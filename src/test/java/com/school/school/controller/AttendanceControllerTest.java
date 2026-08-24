@@ -1,10 +1,6 @@
 package com.school.school.controller;
 
-import com.school.school.infra.security.CustomAccessDeniedHandler;
-import com.school.school.infra.security.CustomAuthenticationEntryPoint;
-import com.school.school.infra.security.OpenEndpointRateLimitFilter;
 import com.school.school.infra.security.SecurityConfig;
-import com.school.school.infra.security.TokenAuthenticationFilter;
 import com.school.school.infra.security.UserAuthenticated;
 import com.school.school.model.Attendance;
 import com.school.school.model.ClassSession;
@@ -16,6 +12,8 @@ import com.school.school.repository.StudentRepository;
 import com.school.school.service.AttendanceService;
 import com.school.school.service.ownership.OwnershipGuard;
 import com.school.school.service.ownership.OwnershipGuards;
+import com.school.testsupport.OpenEndpointsSliceConfig;
+import com.school.testsupport.SecurityHandlersSliceConfig;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -32,7 +30,6 @@ import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequ
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.time.Clock;
 import java.util.List;
 import java.util.Optional;
 
@@ -49,8 +46,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(AttendanceController.class)
-@Import({SecurityConfig.class, AttendanceControllerTest.SliceSecurityBeans.class,
-        AttendanceControllerTest.RealGuards.class, AttendanceService.class})
+@Import({SecurityConfig.class, AttendanceControllerTest.RealGuards.class, AttendanceService.class,
+        OpenEndpointsSliceConfig.class, SecurityHandlersSliceConfig.class})
 class AttendanceControllerTest {
 
     private static final long TEACHER_ID = 7L;
@@ -67,30 +64,6 @@ class AttendanceControllerTest {
 
     @MockitoBean
     private ClassSessionRepository classSessionRepository;
-
-    @TestConfiguration
-    static class SliceSecurityBeans {
-
-        @Bean
-        CustomAuthenticationEntryPoint customAuthenticationEntryPoint() {
-            return new CustomAuthenticationEntryPoint();
-        }
-
-        @Bean
-        CustomAccessDeniedHandler customAccessDeniedHandler() {
-            return new CustomAccessDeniedHandler();
-        }
-
-        @Bean
-        OpenEndpointRateLimitFilter openEndpointRateLimitFilter() {
-            return new OpenEndpointRateLimitFilter(Clock.systemUTC());
-        }
-
-        @Bean
-        TokenAuthenticationFilter tokenAuthenticationFilter(CustomAuthenticationEntryPoint entryPoint) {
-            return new TokenAuthenticationFilter(null, null, entryPoint);
-        }
-    }
 
     @TestConfiguration
     static class RealGuards {

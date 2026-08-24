@@ -15,31 +15,28 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
+/**
+ * Enforces the per-client rate limits declared by {@link OpenEndpointsCatalog}
+ * on the public endpoints. Which requests are limited — and with which limit —
+ * is decided entirely by the catalog; this filter only counts and blocks.
+ */
 @Component
 public class OpenEndpointRateLimitFilter extends OncePerRequestFilter {
 
+    private static final int CLEANUP_EVERY = 200;
+
     private final Clock clock;
-    private static final String LOGIN_KEY = "POST:/api/v1/auth/login";
-    private static final String REFRESH_KEY = "POST:/api/v1/auth/refresh";
-    private static final String REGISTER_KEY = "POST:/api/v1/users/register";
-
-    private static final Map<String, RateLimitRule> RULES = Map.of(
-            LOGIN_KEY, new RateLimitRule(10, Duration.ofMinutes(1)),
-            REFRESH_KEY, new RateLimitRule(20, Duration.ofMinutes(1)),
-            REGISTER_KEY, new RateLimitRule(5, Duration.ofMinutes(1))
-    );
-
-    private static final long MAX_WINDOW_MILLIS = RULES.values()
-            .stream()
-            .mapToLong(rule -> rule.window().toMillis())
-            .max()
-            .orElse(Duration.ofMinutes(1).toMillis());
-
+    private final OpenEndpointsCatalog catalog;
+    private final ClientIpResolver clientIpResolver;
     private final Map<String, RateCounter> counters = new ConcurrentHashMap<>();
     private final AtomicLong requestCounter = new AtomicLong(0);
 
-    public OpenEndpointRateLimitFilter(Clock clock) {
+    public OpenEndpointRateLimitFilter(Clock clock,
+                                       OpenEndpointsCatalog catalog,
+                                       ClientIpResolver clientIpResolver) {
         this.clock = clock;
+        this.catalog = catalog;
+        this.clientIpResolver = clientIpResolver;
     }
 
     @Override
@@ -48,15 +45,15 @@ public class OpenEndpointRateLimitFilter extends OncePerRequestFilter {
                                     FilterChain filterChain) throws ServletException, IOException {
 
         String endpointKey = request.getMethod() + ":" + request.getRequestURI();
-        RateLimitRule rule = RULES.get(endpointKey);
+
+        var rule = catalog.findRule(request.getMethod(), request.getRequestURI()).orElse(null);
 
         if (rule == null) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        String clientIp = extractClientIp(request);
-        String rateKey = endpointKey + ":" + clientIp;
+        String rateKey = endpointKey + ":" + clientIpResolver.resolve(request);
 
         if (!isAllowed(rateKey, rule)) {
             writeRateLimitResponse(response, rule.window());
@@ -67,7 +64,7 @@ public class OpenEndpointRateLimitFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
-    private boolean isAllowed(String rateKey, RateLimitRule rule) {
+    private boolean isAllowed(String rateKey, OpenEndpointsCatalog.RateLimitRule rule) {
         long now = clock.millis();
 
         RateCounter counter = counters.compute(rateKey, (key, existing) -> {
@@ -84,28 +81,13 @@ public class OpenEndpointRateLimitFilter extends OncePerRequestFilter {
     private void cleanupOldEntriesIfNeeded() {
         long handled = requestCounter.incrementAndGet();
 
-        if (handled % 200 != 0) {
+        if (handled % CLEANUP_EVERY != 0) {
             return;
         }
 
         long now = clock.millis();
-        counters.entrySet().removeIf(entry -> now - entry.getValue().windowStartMs() > (MAX_WINDOW_MILLIS * 2));
-    }
-
-    private String extractClientIp(HttpServletRequest request) {
-        String xForwardedFor = request.getHeader("X-Forwarded-For");
-
-        if (xForwardedFor != null && !xForwardedFor.isBlank()) {
-            return xForwardedFor.split(",")[0].trim();
-        }
-
-        String realIp = request.getHeader("X-Real-IP");
-
-        if (realIp != null && !realIp.isBlank()) {
-            return realIp.trim();
-        }
-
-        return request.getRemoteAddr();
+        long maxWindowMillis = catalog.widestWindow().toMillis();
+        counters.entrySet().removeIf(entry -> now - entry.getValue().windowStartMs() > (maxWindowMillis * 2));
     }
 
     private void writeRateLimitResponse(HttpServletResponse response, Duration window) throws IOException {
@@ -114,9 +96,6 @@ public class OpenEndpointRateLimitFilter extends OncePerRequestFilter {
         response.setCharacterEncoding(StandardCharsets.UTF_8.name());
         response.setHeader("Retry-After", String.valueOf(window.toSeconds()));
         response.getWriter().write("{\"status\":429,\"message\":\"Too many requests. Try again later.\"}");
-    }
-
-    private record RateLimitRule(int limit, Duration window) {
     }
 
     private record RateCounter(long windowStartMs, int requests) {

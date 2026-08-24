@@ -9,6 +9,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.time.Clock;
 import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -17,6 +18,7 @@ import java.util.concurrent.atomic.AtomicLong;
 @Component
 public class OpenEndpointRateLimitFilter extends OncePerRequestFilter {
 
+    private final Clock clock;
     private static final String LOGIN_KEY = "POST:/api/v1/auth/login";
     private static final String REFRESH_KEY = "POST:/api/v1/auth/refresh";
     private static final String REGISTER_KEY = "POST:/api/v1/users/register";
@@ -35,6 +37,10 @@ public class OpenEndpointRateLimitFilter extends OncePerRequestFilter {
 
     private final Map<String, RateCounter> counters = new ConcurrentHashMap<>();
     private final AtomicLong requestCounter = new AtomicLong(0);
+
+    public OpenEndpointRateLimitFilter(Clock clock) {
+        this.clock = clock;
+    }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -62,7 +68,7 @@ public class OpenEndpointRateLimitFilter extends OncePerRequestFilter {
     }
 
     private boolean isAllowed(String rateKey, RateLimitRule rule) {
-        long now = System.currentTimeMillis();
+        long now = clock.millis();
 
         RateCounter counter = counters.compute(rateKey, (key, existing) -> {
             if (existing == null || now - existing.windowStartMs() >= rule.window().toMillis()) {
@@ -82,7 +88,7 @@ public class OpenEndpointRateLimitFilter extends OncePerRequestFilter {
             return;
         }
 
-        long now = System.currentTimeMillis();
+        long now = clock.millis();
         counters.entrySet().removeIf(entry -> now - entry.getValue().windowStartMs() > (MAX_WINDOW_MILLIS * 2));
     }
 

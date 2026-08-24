@@ -9,25 +9,32 @@ import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
+import java.time.Clock;
 import java.time.Instant;
 import java.util.Date;
 
 @Component
 public class JwtUtil {
 
-    @Value("${jwt.expiration-ms}")
-    private String expiration;
+    private final long expiration;
+    private final String secret;
+    private final Clock clock;
 
-    @Value("${jwt.secret}")
-    private String secret;
+    public JwtUtil(@Value("${jwt.expiration-ms}") long expiration,
+                   @Value("${jwt.secret}") String secret,
+                   Clock clock) {
+        this.expiration = expiration;
+        this.secret = secret;
+        this.clock = clock;
+    }
 
     private SecretKey getSigningKey() {
         return Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
     }
 
     public String generateToken(User user){
-        Instant now = Instant.now();
-        Instant exp = now.plusMillis(Long.parseLong(expiration));
+        Instant now = Instant.now(clock);
+        Instant exp = now.plusMillis(expiration);
         String token = Jwts.builder()
                 .setSubject(user.getEmail())
                 .claim("userId", user.getId())
@@ -44,6 +51,7 @@ public class JwtUtil {
     public Claims validateToken(String token){
         return Jwts.parserBuilder()
                 .setSigningKey(getSigningKey())
+                .setClock(() -> Date.from(Instant.now(clock)))
                 .build()
                 .parseClaimsJws(token)
                 .getBody();

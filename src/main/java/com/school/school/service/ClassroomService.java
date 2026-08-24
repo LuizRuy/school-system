@@ -17,7 +17,6 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 
@@ -36,7 +35,6 @@ public class ClassroomService {
         Classroom classroom = new Classroom();
         classroom.setName(createClassroomRequest.getName());
         classroom.setUser(user);
-        classroom.setCreatedAt(LocalDateTime.now());
 
         classroomRepository.save(classroom);
 
@@ -85,7 +83,6 @@ public class ClassroomService {
         Classroom classroom = findById(classroomId, userAuthenticated);
 
         classroom.setName(updateClassroomRequest.getName());
-        classroom.setUpdatedAt(LocalDateTime.now());
 
         classroomRepository.save(classroom);
 

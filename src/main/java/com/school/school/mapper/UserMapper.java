@@ -7,8 +7,6 @@ import com.school.school.model.enums.Role;
 import com.school.school.model.enums.Status;
 import org.springframework.stereotype.Component;
 
-import java.time.LocalDateTime;
-
 @Component
 public class UserMapper {
 
@@ -18,7 +16,6 @@ public class UserMapper {
                 .password(hashedPassword)
                 .firstName(dto.getFirstName())
                 .lastName(dto.getLastName())
-                .createdAt(LocalDateTime.now())
                 .role(Role.USER)
                 .status(Status.ENABLED)
                 .build();

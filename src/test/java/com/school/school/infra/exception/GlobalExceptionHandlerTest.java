@@ -22,6 +22,8 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
+import java.time.Clock;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
@@ -59,7 +61,7 @@ class GlobalExceptionHandlerTest {
 
         @Bean
         OpenEndpointRateLimitFilter openEndpointRateLimitFilter() {
-            return new OpenEndpointRateLimitFilter();
+            return new OpenEndpointRateLimitFilter(Clock.systemUTC());
         }
 
         @Bean

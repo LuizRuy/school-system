@@ -13,7 +13,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -47,7 +46,6 @@ public class StudentService {
         student.setName(updateStudent.getName());
         student.setDateOfBirth(updateStudent.getDateOfBirth());
         student.setObservations(updateStudent.getObservations());
-        student.setUpdatedAt(LocalDateTime.now());
 
         studentRepository.save(student);
 

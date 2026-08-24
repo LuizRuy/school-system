@@ -6,8 +6,6 @@ import com.school.school.model.dto.student.CreateStudentRequest;
 import com.school.school.model.dto.student.StudentResponse;
 import org.springframework.stereotype.Component;
 
-import java.time.LocalDateTime;
-
 @Component
 public class StudentMapper {
 
@@ -16,7 +14,6 @@ public class StudentMapper {
                 .name(dto.getName())
                 .dateOfBirth(dto.getDateOfBirth())
                 .user(user)
-                .createdAt(LocalDateTime.now())
                 .build();
     }
 

@@ -6,8 +6,6 @@ import com.school.school.model.dto.task.CreateTaskRequest;
 import com.school.school.model.dto.task.TaskResponse;
 import org.springframework.stereotype.Component;
 
-import java.time.LocalDateTime;
-
 @Component
 public class TaskMapper {
 
@@ -15,7 +13,6 @@ public class TaskMapper {
        return Task.builder()
                .name(dto.getName())
                .user(user)
-               .createdAt(LocalDateTime.now())
                .build();
 
     }

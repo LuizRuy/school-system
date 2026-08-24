@@ -2,6 +2,8 @@ package com.school.school.model;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
@@ -13,6 +15,7 @@ import java.util.Set;
 @AllArgsConstructor
 @Entity
 @Builder
+@EntityListeners(AuditingEntityListener.class)
 public class Task {
 
     @Id
@@ -21,6 +24,7 @@ public class Task {
 
     private String name;
 
+    @CreatedDate
     private LocalDateTime createdAt;
 
     @OneToMany(mappedBy = "task",

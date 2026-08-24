@@ -14,7 +14,6 @@ import lombok.AllArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -55,7 +54,6 @@ public class UserService {
 
         user.setFirstName(dto.getFirstName());
         user.setLastName(dto.getLastName());
-        user.setUpdatedAt(LocalDateTime.now());
 
         userRepository.save(user);
 
@@ -89,7 +87,6 @@ public class UserService {
 
         String hashedNewPassword = passwordEncoder.encode(request.getNewPassword());
         user.setPassword(hashedNewPassword);
-        user.setUpdatedAt(LocalDateTime.now());
 
         userRepository.save(user);
    }

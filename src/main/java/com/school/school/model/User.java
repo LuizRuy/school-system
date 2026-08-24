@@ -4,6 +4,9 @@ import com.school.school.model.enums.Role;
 import com.school.school.model.enums.Status;
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
@@ -16,6 +19,7 @@ import java.util.Set;
 @Entity
 @Builder
 @Table(name = "users")
+@EntityListeners(AuditingEntityListener.class)
 public class User {
 
     @Id
@@ -30,8 +34,10 @@ public class User {
 
     private String password;
 
+    @CreatedDate
     private LocalDateTime createdAt;
 
+    @LastModifiedDate
     private LocalDateTime updatedAt;
 
     @Enumerated(EnumType.STRING)

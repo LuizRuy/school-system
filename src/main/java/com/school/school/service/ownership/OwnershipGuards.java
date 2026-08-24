@@ -1,8 +1,12 @@
 package com.school.school.service.ownership;
 
+import com.school.school.model.ClassSession;
 import com.school.school.model.Classroom;
+import com.school.school.model.Student;
 import com.school.school.model.Task;
+import com.school.school.repository.ClassSessionRepository;
 import com.school.school.repository.ClassroomRepository;
+import com.school.school.repository.StudentRepository;
 import com.school.school.repository.TaskRepository;
 
 import java.util.Optional;
@@ -37,6 +41,24 @@ public final class OwnershipGuards {
                 classroom -> classroom.getUser().getId(),
                 "Classroom",
                 OwnershipErrorMode.FORBIDDEN
+        );
+    }
+
+    public static OwnershipGuard<Student> forStudents(StudentRepository studentRepository) {
+        return ownedBy(
+                studentRepository::findById,
+                student -> student.getUser().getId(),
+                "Student",
+                OwnershipErrorMode.FORBIDDEN
+        );
+    }
+
+    public static OwnershipGuard<ClassSession> forClassSessions(ClassSessionRepository classSessionRepository) {
+        return ownedBy(
+                classSessionRepository::findById,
+                classSession -> classSession.getUser().getId(),
+                "Class session",
+                OwnershipErrorMode.NOT_FOUND
         );
     }
 }

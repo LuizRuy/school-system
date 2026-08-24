@@ -46,9 +46,9 @@ class SubmissionMapperTest {
     }
 
     @Test
-    @DisplayName("The mapper is constructed with no collaborators at all")
+    @DisplayName("The mapper declares no fields at all, so it can hold no I/O or authorization collaborators")
     void mapperNeedsNoCollaborators() {
-        assertThat(submissionMapper).isNotNull();
+        assertThat(SubmissionMapper.class.getDeclaredFields()).isEmpty();
     }
 
     @Test

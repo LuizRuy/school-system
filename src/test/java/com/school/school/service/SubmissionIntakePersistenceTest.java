@@ -8,6 +8,7 @@ import com.school.school.model.Student;
 import com.school.school.model.Submission;
 import com.school.school.model.Task;
 import com.school.school.model.User;
+import com.school.school.model.dto.submission.SubmissionRequest;
 import com.school.school.model.dto.submission.SubmissionsRequest;
 import com.school.school.repository.StudentRepository;
 import com.school.school.repository.SubmissionRepository;
@@ -54,6 +55,8 @@ class SubmissionIntakePersistenceTest {
     private SubmissionService submissionService;
     @Autowired
     private OwnershipGuard<Task> taskOwnershipGuard;
+    @Autowired
+    private OwnershipGuard<Student> studentOwnershipGuard;
 
     @TestConfiguration
     static class StubGuards {
@@ -115,6 +118,10 @@ class SubmissionIntakePersistenceTest {
         when(taskOwnershipGuard.resolve(task.getId(), principal)).thenReturn(task);
     }
 
+    private void studentResolvedThroughGuard(Student student, UserAuthenticated principal) {
+        when(studentOwnershipGuard.resolve(student.getId(), principal)).thenReturn(student);
+    }
+
     @Test
     @DisplayName("A batch naming an unknown student is denied whole, leaving no partial rows")
     void batchWithUnknownStudentLeavesNoPartialRows() {
@@ -173,6 +180,33 @@ class SubmissionIntakePersistenceTest {
         resolvedThroughGuard(algebra, principal);
 
         submissionService.addSubmissions(algebra.getId(), batchRequest(Map.of(student.getId(), false)), principal);
+
+        assertThat(submissionRepository.count()).isEqualTo(1);
+        Submission stored = submissionRepository.findAll().get(0);
+        assertThat(stored.getStudent().getId()).isEqualTo(student.getId());
+        assertThat(stored.getSubmitted()).isFalse();
+    }
+
+    @Test
+    @DisplayName("Re-recording via the single path persists as an update of the same row too")
+    void singleReRecordingPersistsAsUpdateOfSameRow() {
+        User owner = persistedOwner();
+        UserAuthenticated principal = principalOf(owner);
+        Task algebra = persistedTask(owner, "Algebra homework");
+        Student student = persistedStudent(owner, "Bob");
+        submissionRepository.saveAndFlush(Submission.builder()
+                .student(student)
+                .task(algebra)
+                .submitted(true)
+                .build());
+        resolvedThroughGuard(algebra, principal);
+        studentResolvedThroughGuard(student, principal);
+
+        SubmissionRequest request = new SubmissionRequest();
+        request.setStudentId(student.getId());
+        request.setTaskId(algebra.getId());
+        request.setSubmitted(false);
+        submissionService.addSubmission(request, principal);
 
         assertThat(submissionRepository.count()).isEqualTo(1);
         Submission stored = submissionRepository.findAll().get(0);

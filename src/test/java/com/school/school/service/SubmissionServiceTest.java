@@ -19,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.lang.reflect.Method;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -80,6 +81,11 @@ class SubmissionServiceTest {
         when(taskOwnershipGuard.resolve(taskId, principal)).thenReturn(task(taskId));
     }
 
+    private Task resolvedTask(Task algebra) {
+        when(taskOwnershipGuard.resolve(algebra.getId(), principal)).thenReturn(algebra);
+        return algebra;
+    }
+
     private void resolvedStudents(Map<Long, Student> students) {
         when(studentService.resolveAll(students.keySet(), principal)).thenReturn(students);
     }
@@ -110,28 +116,30 @@ class SubmissionServiceTest {
     @Test
     @DisplayName("Batch intake resolves every student through one batched lookup instead of one per row")
     void batchIntakeResolvesStudentsThroughOneBatchedLookup() {
-        resolvedTask(31L);
+        Task algebra = resolvedTask(task(31L));
         resolvedStudents(Map.of(21L, student(21L), 22L, student(22L)));
-        when(submissionRepository.findByTaskIdAndStudentId(anyLong(), anyLong())).thenReturn(Optional.empty());
+        when(submissionRepository.findByTask(algebra)).thenReturn(List.of());
 
         submissionService.addSubmissions(31L, batchRequest(31L, Map.of(21L, true, 22L, false)), principal);
 
         verify(studentService).resolveAll(Set.of(21L, 22L), principal);
         verify(studentService, never()).findStudent(anyLong(), any());
+        verify(submissionRepository).findByTask(algebra);
+        verify(submissionRepository, never()).findByTaskIdAndStudentId(anyLong(), anyLong());
     }
 
     @Test
     @DisplayName("Batch intake persists mixed submitted states for the whole class")
     void batchIntakePersistsMixedSubmittedStates() {
-        resolvedTask(31L);
+        Task algebra = resolvedTask(task(31L));
         resolvedStudents(Map.of(21L, student(21L), 22L, student(22L)));
-        when(submissionRepository.findByTaskIdAndStudentId(anyLong(), anyLong())).thenReturn(Optional.empty());
+        when(submissionRepository.findByTask(algebra)).thenReturn(List.of());
 
         submissionService.addSubmissions(31L, batchRequest(31L, Map.of(21L, true, 22L, false)), principal);
 
-        ArgumentCaptor<Submission> saved = ArgumentCaptor.forClass(Submission.class);
-        verify(submissionRepository, times(2)).save(saved.capture());
-        assertThat(saved.getAllValues())
+        ArgumentCaptor<List<Submission>> saved = ArgumentCaptor.forClass(List.class);
+        verify(submissionRepository).saveAll(saved.capture());
+        assertThat(saved.getValue())
                 .extracting(row -> row.getStudent().getId(), row -> row.getTask().getId(), Submission::getSubmitted)
                 .containsExactlyInAnyOrder(
                         tuple(21L, 31L, true),
@@ -141,25 +149,22 @@ class SubmissionServiceTest {
     @Test
     @DisplayName("Batch intake upserts: already-submitted students flip in place, fresh ones insert")
     void batchIntakeUpsertsAlreadySubmittedStudents() {
-        resolvedTask(31L);
+        Task algebra = resolvedTask(task(31L));
         resolvedStudents(Map.of(21L, student(21L), 22L, student(22L)));
         Submission alreadySubmitted = storedRow(5L, 21L, 31L, true);
-        when(submissionRepository.findByTaskIdAndStudentId(31L, 21L)).thenReturn(Optional.of(alreadySubmitted));
-        when(submissionRepository.findByTaskIdAndStudentId(31L, 22L)).thenReturn(Optional.empty());
+        when(submissionRepository.findByTask(algebra)).thenReturn(List.of(alreadySubmitted));
 
         submissionService.addSubmissions(31L, batchRequest(31L, Map.of(21L, false, 22L, true)), principal);
 
-        ArgumentCaptor<Submission> saved = ArgumentCaptor.forClass(Submission.class);
-        verify(submissionRepository, times(2)).save(saved.capture());
-        assertThat(saved.getAllValues()).anySatisfy(row -> {
-            assertThat(row).isSameAs(alreadySubmitted);
-            assertThat(row.getSubmitted()).isFalse();
-        });
-        assertThat(saved.getAllValues()).anySatisfy(row -> {
-            assertThat(row.getId()).isNull();
-            assertThat(row.getStudent().getId()).isEqualTo(22L);
-            assertThat(row.getSubmitted()).isTrue();
-        });
+        verify(submissionRepository).save(same(alreadySubmitted));
+        assertThat(alreadySubmitted.getSubmitted()).isFalse();
+
+        ArgumentCaptor<List<Submission>> saved = ArgumentCaptor.forClass(List.class);
+        verify(submissionRepository).saveAll(saved.capture());
+        assertThat(saved.getValue()).hasSize(1);
+        assertThat(saved.getValue().get(0).getId()).isNull();
+        assertThat(saved.getValue().get(0).getStudent().getId()).isEqualTo(22L);
+        assertThat(saved.getValue().get(0).getSubmitted()).isTrue();
     }
 
     @Test

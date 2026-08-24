@@ -1,5 +1,6 @@
 package com.school.school.mapper;
 
+import com.school.school.infra.exception.EntityNotFoundException;
 import com.school.school.model.Student;
 import com.school.school.model.Submission;
 import com.school.school.model.Task;
@@ -51,7 +52,7 @@ public class SubmissionMapper {
     public Submission toSubmission(Long studentId, Boolean submitted, Task task, Map<Long, Student> resolvedStudents) {
         Student student = resolvedStudents.get(studentId);
         if (student == null) {
-            throw new IllegalArgumentException("No resolved student for id " + studentId);
+            throw new EntityNotFoundException("Student not found with id: " + studentId);
         }
         return Submission.builder()
                 .task(task)

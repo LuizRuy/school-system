@@ -15,7 +15,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -41,13 +45,27 @@ public class SubmissionService {
 
         Task task = taskOwnershipGuard.resolve(taskId, userAuthenticated);
 
-        List<Submission> submissions = submissionMapper.toSubmissions(
+        List<Submission> incoming = submissionMapper.toSubmissions(
                 submissionsRequest.getSubmissions(),
                 task,
                 studentService.resolveAll(submissionsRequest.getSubmissions().keySet(), userAuthenticated)
         );
 
-        submissions.forEach(this::record);
+        Map<Long, Submission> existingByStudentId = submissionRepository.findByTask(task).stream()
+                .collect(Collectors.toMap(submission -> submission.getStudent().getId(), Function.identity()));
+
+        List<Submission> fresh = new ArrayList<>();
+        for (Submission submission : incoming) {
+            Submission existing = existingByStudentId.get(submission.getStudent().getId());
+            if (existing == null) {
+                fresh.add(submission);
+            } else {
+                existing.setSubmitted(submission.getSubmitted());
+                submissionRepository.save(existing);
+            }
+        }
+
+        submissionRepository.saveAll(fresh);
     }
 
     public SubmissionResponse getSubmissions(Long taskId, UserAuthenticated userAuthenticated) {

@@ -90,4 +90,43 @@ class OwnershipGuardTest {
                 .hasMessage("Task not found with id: 42");
     }
 
+    @Test
+    @DisplayName("Authorize passes silently for an entity owned by the principal and returns nothing to discard")
+    void authorizePassesSilentlyForOwnedEntity() {
+        tasks.put(42L, ownedTask(42L, 7L));
+
+        guard().authorize(42L, principal(userWithId(7L)));
+    }
+
+    @Test
+    @DisplayName("Authorize reports a missing entity as not found")
+    void authorizeReportsMissingEntityAsNotFound() {
+        org.assertj.core.api.Assertions.assertThatThrownBy(
+                        () -> guard().authorize(99L, principal(userWithId(7L))))
+                .isInstanceOf(EntityNotFoundException.class)
+                .hasMessage("Task not found with id: 99");
+    }
+
+    @Test
+    @DisplayName("Authorize denies a foreign entity when the error mode is FORBIDDEN")
+    void authorizeDeniesForeignEntityInForbiddenMode() {
+        tasks.put(42L, ownedTask(42L, 8L));
+
+        org.assertj.core.api.Assertions.assertThatThrownBy(
+                        () -> guard().authorize(42L, principal(userWithId(7L))))
+                .isInstanceOf(AccessDeniedException.class)
+                .hasMessage("You do not have permission to access this task");
+    }
+
+    @Test
+    @DisplayName("Authorize masks a foreign entity as not found when the error mode is NOT_FOUND")
+    void authorizeMasksForeignEntityInNotFoundErrorMode() {
+        tasks.put(42L, ownedTask(42L, 8L));
+
+        org.assertj.core.api.Assertions.assertThatThrownBy(
+                        () -> guard(OwnershipErrorMode.NOT_FOUND).authorize(42L, principal(userWithId(7L))))
+                .isInstanceOf(EntityNotFoundException.class)
+                .hasMessage("Task not found with id: 42");
+    }
+
 }

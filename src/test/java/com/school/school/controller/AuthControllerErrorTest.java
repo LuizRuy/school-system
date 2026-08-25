@@ -1,34 +1,29 @@
 package com.school.school.controller;
 
 import com.school.school.infra.exception.GlobalExceptionHandler;
-import com.school.school.infra.security.CustomAccessDeniedHandler;
-import com.school.school.infra.security.CustomAuthenticationEntryPoint;
 import com.school.school.infra.security.ExpiredRefreshTokenException;
 import com.school.school.infra.security.InvalidRefreshTokenException;
-import com.school.school.infra.security.OpenEndpointRateLimitFilter;
 import com.school.school.infra.security.SecurityConfig;
-import com.school.school.infra.security.TokenAuthenticationFilter;
 import com.school.school.service.AuthService;
+import com.school.testsupport.OpenEndpointsSliceConfig;
+import com.school.testsupport.SecurityHandlersSliceConfig;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-
-import java.time.Clock;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(AuthController.class)
-@Import({SecurityConfig.class, AuthControllerErrorTest.SliceSecurityBeans.class})
+@Import({SecurityConfig.class, OpenEndpointsSliceConfig.class,
+        SecurityHandlersSliceConfig.class})
 class AuthControllerErrorTest {
 
     private static final String REFRESH_URI = "/api/v1/auth/refresh";
@@ -38,30 +33,6 @@ class AuthControllerErrorTest {
 
     @MockitoBean
     private AuthService authService;
-
-    @TestConfiguration
-    static class SliceSecurityBeans {
-
-        @Bean
-        CustomAuthenticationEntryPoint customAuthenticationEntryPoint() {
-            return new CustomAuthenticationEntryPoint();
-        }
-
-        @Bean
-        CustomAccessDeniedHandler customAccessDeniedHandler() {
-            return new CustomAccessDeniedHandler();
-        }
-
-        @Bean
-        OpenEndpointRateLimitFilter openEndpointRateLimitFilter() {
-            return new OpenEndpointRateLimitFilter(Clock.systemUTC());
-        }
-
-        @Bean
-        TokenAuthenticationFilter tokenAuthenticationFilter(CustomAuthenticationEntryPoint entryPoint) {
-            return new TokenAuthenticationFilter(null, null, entryPoint);
-        }
-    }
 
     @Test
     @DisplayName("an unknown refresh token returns 401 with an invalid-token reason")
